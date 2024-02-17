@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org">
+
+<head>
+    <!-- Meta tags for character set and viewport settings -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap and jQuery -->
+    <link rel="stylesheet" type="text/css" th:href="@{'/css/main.css'}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{'/webjars/bootstrap/5.2.3/css/bootstrap.min.css'}"/>
+
+    <title>Admin Dashboard</title>
+</head>
+
+<body>
+<!-- Navbar with background image -->
+<nav class="navbar navbar-expand-lg navbar-light"
+     style="background-image: url('/img/header_background.jpg'); background-size: cover; color: #fff; padding: 5px; text-align: center;">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <img src="/img/admin-logo.jpg" alt="Admin Logo" class="logo img-fluid">
+        </a>
+        <a class="navbar-brand text-glow" style="font-style: italic; color: #d7e6f5;" href="#">Admin Dashboard</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" style="font-weight: bold; color: #fc933c;" th:href="@{/employees}">Employees</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" style="font-weight: bold; color: #fc933c;"
+                       th:href="@{/departments}">Departments</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" style="font-weight: bold; color: #fc933c;" th:href="@{/positions}">Positions</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" th:href="@{/logout}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+
+
+
+
+<nav class="navbar navbar-expand-lg navbar-light">
+    <span class="navbar-brand">Admin Dashboard</span>
+    <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <span class="nav-link">Role: <span th:text="${role}"></span></span>
+            </li>
+            <li class="nav-item">
+                <span class="nav-link">Name: <span th:text="${fullName}"></span></span>
+            </li>
+            <li class="nav-item">
+                <span class="nav-link">Login Time: <span th:text="${loginTime}"></span></span>
+            </li>
+        </ul>
+    </div>
+</nav>
+<!-- Your dashboard content here -->
+</body>
+</html>

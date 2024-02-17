@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Search</title>
+    <link rel="stylesheet" th:href="@{/resources/static/css/styles.css}"/>
+</head>
+
+<body>
+<h1>Search Users</h1>
+<form action="/library/users/search-results" method="get">
+    <label for="searchQuery">Search by Name or Last Name:</label>
+    <input type="text" id="searchQuery" name="searchQuery" required>
+    <br>
+    <br>
+    <input type="submit" value="Search">
+</form>
+
+
+</body>
+</html>

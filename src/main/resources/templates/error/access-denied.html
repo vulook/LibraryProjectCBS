@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap and jQuery -->
+    <link rel="stylesheet" type="text/css" th:href="@{/css/main.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/5.2.3/css/bootstrap.min.css}"/>
+
+    <title>Access Denied</title>
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-5">
+    <h1 class="text-danger">Error 403 - Access Denied</h1>
+
+    <p class="lead">
+        Sorry, <span th:text="${username}"></span>,
+        you don't have permission to access this page.
+    </p>
+
+    <br>
+
+    <div class="alert alert-danger" role="alert">
+        Information about the error:
+        <ul>
+            <li><strong>Date:</strong> <span th:text="${date}"></span></li>
+            <li><strong>Username:</strong> <span th:text="${username}"></span></li>
+            <li><strong>Role:</strong> <span th:text="${role}"></span></li>
+			<li><strong>URI:</strong> <span th:text="${uri}"></span></li>
+            <li><strong>Message:</strong> <span th:text="${message}"></span></li>
+        </ul>
+    </div>
+
+</div>
+
+<br>
+<br>
+
+<!-- Button to go back to the home page -->
+<form th:action="@{/}" method="get">
+    <button type="submit" class="btn btn-secondary btn-lg">
+        Go Back to Start Page
+    </button>
+</form>
+
+<script th:src="@{/webjars/jquery/3.6.4/jquery.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/5.2.3/js/bootstrap.min.js}"></script>
+
+</body>
+</html>

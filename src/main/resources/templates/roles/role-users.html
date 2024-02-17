@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Users</title>
+    <link rel="stylesheet" th:href="@{/resources/static/css/styles.css}"/>
+</head>
+
+<body>
+<h1>Users by role <span th:text="${roleName}"></span></h1>
+
+<div>
+    <a th:href="@{/library/users/search-user}" class="button"><button type="button">Search User</button></a>
+</div>
+
+<br>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Full Name</th>
+        <th>Age</th>
+        <th>Membership</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <!-- Iterate over the list of users from the model -->
+    <tr th:each="user : ${users}">
+        <td th:text="${user.id}" />
+        <td th:text="${user.firstName + ' ' + user.lastName}" />
+        <td th:text="${user.getAge()}" />
+        <td th:text="${user.getTerm()}" />
+
+        <td>
+            <a th:href="@{'/library/roles/list/users/' + ${user.id} + '/edit'}">Edit</a>
+            <a th:href="@{'/library/users/list/' + ${user.id} + '/delete'}"
+               onclick="return confirm('Are you sure you want to delete this user?')">Delete</a>
+
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

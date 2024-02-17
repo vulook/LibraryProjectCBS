@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="eu">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Password Reset</title>
+</head>
+
+<body>
+<div class="container">
+    <div style="padding: 20px;">
+        <div class="header">
+            <h2>Modern Login System Project</h2>
+        </div>
+    </div>
+
+    <div class="content">
+        <div style="padding: 20px;">
+            <p th:text="${'Dear ' + user.firstName + ' ' + user.lastName + ','}"></p>
+            <p>
+                You've requested a password reset. To reset your password, please click the following link:
+            </p>
+            <a th:href="${resetUrl}" class="link">RESET YOUR PASSWORD</a>
+
+            <p class="info">Password reset token is valid until: <strong th:text="${resetTokenExpiry}"></strong>.</p>
+
+            <p>If you did not request this change, please ignore this email. Your password will remain unchanged.</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer" style="background-color: #333; color: #fff; padding: 10px; position: fixed; width: calc(100% - 20px);">
+            <p th:utext="${signature + 'All rights reserved &copy; 2023'}" style="margin: 0;"></p>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
