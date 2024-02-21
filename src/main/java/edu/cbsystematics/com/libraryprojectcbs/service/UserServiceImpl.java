@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
         User newUser = userRepository.save(user);
 
         // Print the new user
-        System.out.println(newUser);
+        print (newUser);
     }
 
     @Override
@@ -82,9 +82,9 @@ public class UserServiceImpl implements UserService {
         validateCreatedUserDetails(user);
 
         // Save the user
-        User savedUser = userRepository.save(user);
+        User newRegUser = userRepository.save(user);
 
-        print (savedUser);
+        print (newRegUser);
 
     }
 
@@ -136,20 +136,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void updateReader(Long id, String firstName, String lastName, LocalDate birthDate, String phone, String email, String password) {
+    public void partialEdit(Long id, String firstName, String lastName, LocalDate birthDate, String phone, String email, String password) {
         // Retrieve the existing user
         Optional<User> existingReaderOptional = userRepository.findById(id);
         // Check for details updatedUser
         if (existingReaderOptional.isPresent()) {
             User existingUser = existingReaderOptional.get();
             // Validate the updated details
-            validateUpdatedReaderDetails(existingUser, firstName, lastName, birthDate);
+            validatePartialEditDetails(existingUser, firstName, lastName, birthDate);
         }
         // Update the reader
-        userRepository.updateReader(id, firstName, lastName, birthDate, phone, email, password);
+        userRepository.partialEdit(id, firstName, lastName, birthDate, phone, email, password);
     }
 
-    private void validateUpdatedReaderDetails(User existingUser, String firstName, String lastName, LocalDate birthDate) {
+    private void validatePartialEditDetails(User existingUser, String firstName, String lastName, LocalDate birthDate) {
         if ((!existingUser.getFirstName().equals(firstName) && userRepository.existsByFirstName(firstName)) ||
                 (!existingUser.getLastName().equals(lastName) && userRepository.existsByLastName(lastName)) ||
                 (!existingUser.getBirthDate().equals(birthDate) && userRepository.existsByBirthDate(birthDate))) {

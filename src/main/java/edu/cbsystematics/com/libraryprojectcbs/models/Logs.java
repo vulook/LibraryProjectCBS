@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 
 @Entity
@@ -19,6 +20,9 @@ public class Logs {
     @Id
     @Column(name = "id", nullable = false, columnDefinition = "BIGINT")
     private Long id;
+
+    @Column(name = "user_number", nullable = false, columnDefinition = "BIGINT")
+    private Long userNumber;
 
     @Column(name = "name", columnDefinition = "varchar(100)")
     private String fullName;
@@ -60,6 +64,10 @@ public class Logs {
 
     public String getFormattedCreatedAt() {
         return this.createdAt.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+    }
+
+    public void calculateUserSequenceNumber(List<Logs> logs) {
+        this.userNumber = (long) (logs.isEmpty() ? 1 : logs.size() + 1);
     }
 
 }

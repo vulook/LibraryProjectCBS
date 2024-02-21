@@ -23,7 +23,7 @@ public interface UserService {
 
     // Updates a reader's information
     @Transactional
-    void updateReader(Long id, String firstName, String lastName, LocalDate birthDate, String phone, String email, String password);
+    void partialEdit(Long id, String firstName, String lastName, LocalDate birthDate, String phone, String email, String password);
 
     // Deletes a user with the given ID
     void deleteUser(Long id);

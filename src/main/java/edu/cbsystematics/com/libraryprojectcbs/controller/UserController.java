@@ -1,9 +1,7 @@
 package edu.cbsystematics.com.libraryprojectcbs.controller;
 
 import edu.cbsystematics.com.libraryprojectcbs.config.PaginationConstants;
-import edu.cbsystematics.com.libraryprojectcbs.config.aspect.Loggable;
 import edu.cbsystematics.com.libraryprojectcbs.exception.*;
-import edu.cbsystematics.com.libraryprojectcbs.models.ActionType;
 import edu.cbsystematics.com.libraryprojectcbs.models.User;
 import edu.cbsystematics.com.libraryprojectcbs.models.UserRole;
 import edu.cbsystematics.com.libraryprojectcbs.service.UserRoleService;
@@ -111,7 +109,7 @@ public class UserController {
         if (id != null) {
             try {
                 // Update user details.
-                userService.updateReader(id, updatedReader.getFirstName(), updatedReader.getLastName(), updatedReader.getBirthDate(), updatedReader.getPhone(), updatedReader.getEmail(), updatedReader.getPassword());
+                userService.partialEdit(id, updatedReader.getFirstName(), updatedReader.getLastName(), updatedReader.getBirthDate(), updatedReader.getPhone(), updatedReader.getEmail(), updatedReader.getPassword());
                 redirectAttributes.addAttribute("successMessage", "Reader '" + updatedReader.getFirstName() + ' ' + updatedReader.getLastName() + "' successfully updated.");
                 return "redirect:/library/users/success";
             } catch (UserAlreadyExistsException ex) {

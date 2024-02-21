@@ -1,17 +1,18 @@
 package edu.cbsystematics.com.libraryprojectcbs.config.security;
 
+import edu.cbsystematics.com.libraryprojectcbs.service.CustomLogoutLogger;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
 
-@Component
+@Service
 public class CustomLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
 
     private final CustomLogoutLogger customLogoutLogger;
@@ -36,8 +37,14 @@ public class CustomLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
 
             // Log the logout event using the logLogout
             customLogoutLogger.logLogout(authentication);
+
         } else {
-            System.out.print("User has logged out successfully.");
+
+            // Print a message
+            System.out.print("\033[1;32m");
+            System.out.println("User has logged out successfully.");
+            System.out.print("\033[0m");
+
         }
 
         // Call to handle the logout success event

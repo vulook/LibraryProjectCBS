@@ -1,5 +1,6 @@
 package edu.cbsystematics.com.libraryprojectcbs.config.security;
 
+import edu.cbsystematics.com.libraryprojectcbs.service.CustomLoginLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;

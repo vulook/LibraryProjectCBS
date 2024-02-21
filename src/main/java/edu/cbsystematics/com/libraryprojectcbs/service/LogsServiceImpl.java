@@ -22,6 +22,12 @@ public class LogsServiceImpl implements LogsService {
     @Override
     public void saveLog(String fullName, String role, ActionType action, String method, String parameters, Long executionTime, User userCreator) {
         Logs log = new Logs(fullName, role, action, method, parameters, executionTime, userCreator);
+
+        List<Logs> userLogs = logsRepository.findByUserCreator(userCreator);
+
+        // Calculation of serial number for the user
+        log.calculateUserSequenceNumber(userLogs);
+
         logsRepository.save(log);
     }
 

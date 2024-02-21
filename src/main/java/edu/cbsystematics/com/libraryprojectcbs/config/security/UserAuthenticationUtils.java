@@ -5,28 +5,32 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 
 @Component
 public class UserAuthenticationUtils {
 
     // Retrieves the username of the current authenticated user from the given Authentication object.
     public String getCurrentUserUsername(Authentication authentication) {
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails userDetails) {
-            return userDetails.getUsername();
-        } else if (principal instanceof String) {
-            return (String) principal;
-        } else {
-            throw new IllegalStateException("Unexpected principal type: " + principal.getClass());
-        }
+        return Optional.ofNullable(authentication)
+                .map(Authentication::getPrincipal)
+                .filter(UserDetails.class::isInstance)
+                .map(UserDetails.class::cast)
+                .map(UserDetails::getUsername)
+                .orElse(null);
     }
 
+
     // Retrieves the role of the current authenticated user from the given Authentication object.
-    public String getCurrentUserRole(Authentication authentication) {
-        return authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No role found"));
+    public String getCurrentUserRoles(Authentication authentication) {
+        return Optional.ofNullable(authentication)
+                .map(Authentication::getAuthorities)
+                .map(authorities -> authorities.stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.joining("")))
+                .orElse(null);
     }
 
 

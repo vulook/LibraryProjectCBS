@@ -21,7 +21,7 @@ public interface UserRepository extends JpaRepository<User, Long>, PagingAndSort
     @Transactional
     @Query("UPDATE User u SET u.firstName = :firstName, u.lastName = :lastName, u.birthDate = :birthDate, u.phone = :phone, u.email = :email, u.password = :password, u.regDate = :regDate, u.userRole = :userRole WHERE u.id = :id")
     void updateUser(
-            @Param("id") Long id,
+            Long id,
             @Param("firstName") String firstName,
             @Param("lastName") String lastName,
             @Param("birthDate") LocalDate birthDate,
@@ -36,8 +36,8 @@ public interface UserRepository extends JpaRepository<User, Long>, PagingAndSort
     @Modifying
     @Transactional
     @Query("UPDATE User u SET u.firstName = :firstName, u.lastName = :lastName, u.birthDate = :birthDate, u.phone = :phone, u.email = :email, u.password = :password WHERE u.id = :id")
-    void updateReader(
-            @Param("id") Long id,
+    void partialEdit(
+            Long id,
             @Param("firstName") String firstName,
             @Param("lastName") String lastName,
             @Param("birthDate") LocalDate birthDate,
