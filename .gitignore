@@ -1,6 +1,14 @@
 application.properties
 application.yml
 
+# Ignore static and template directories in resources
+/src/main/resources/static/
+/src/main/resources/templates/
+
+/static/
+/templates/
+
+
 ### Java template
 # Compiled class file
 *.class
