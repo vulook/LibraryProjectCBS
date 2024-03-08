@@ -32,11 +32,11 @@ public interface UserRepository extends JpaRepository<User, Long>, PagingAndSort
             @Param("userRole") UserRole userRole
     );
 
-    // Update Reader Information
+    // Partial Update User Information
     @Modifying
     @Transactional
-    @Query("UPDATE User u SET u.firstName = :firstName, u.lastName = :lastName, u.birthDate = :birthDate, u.phone = :phone, u.email = :email, u.password = :password WHERE u.id = :id")
-    void partialEdit(
+    @Query("UPDATE User up SET up.firstName = :firstName, up.lastName = :lastName, up.birthDate = :birthDate, up.phone = :phone, up.email = :email, up.password = :password WHERE up.id = :id")
+    void partialUpdateUser(
             Long id,
             @Param("firstName") String firstName,
             @Param("lastName") String lastName,
@@ -71,5 +71,8 @@ public interface UserRepository extends JpaRepository<User, Long>, PagingAndSort
 
     // Get Email
     User findByEmail(String email);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.userRole = :role AND u.regDate >= :afterDate")
+    Long countUsersByRoleAddedAfterDate(@Param("role") UserRole role, @Param("afterDate") LocalDate afterDate);
 
 }

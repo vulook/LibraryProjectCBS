@@ -1,15 +1,18 @@
 package edu.cbsystematics.com.libraryprojectcbs.service;
 
-import edu.cbsystematics.com.libraryprojectcbs.config.aspect.Loggable;
-import edu.cbsystematics.com.libraryprojectcbs.config.comporator.ComparatorAge;
-import edu.cbsystematics.com.libraryprojectcbs.config.comporator.ComparatorTerm;
-import edu.cbsystematics.com.libraryprojectcbs.dto.UserRegistrationDTO;
+import edu.cbsystematics.com.libraryprojectcbs.aop.Loggable;
+import edu.cbsystematics.com.libraryprojectcbs.dto.*;
+import edu.cbsystematics.com.libraryprojectcbs.exception.UserNotFoundException;
+import edu.cbsystematics.com.libraryprojectcbs.utils.comparator.ComparatorAge;
+import edu.cbsystematics.com.libraryprojectcbs.utils.comparator.ComparatorTerm;
 import edu.cbsystematics.com.libraryprojectcbs.exception.AdminDeletionException;
 import edu.cbsystematics.com.libraryprojectcbs.exception.UserAlreadyExistsException;
 import edu.cbsystematics.com.libraryprojectcbs.models.ActionType;
 import edu.cbsystematics.com.libraryprojectcbs.models.User;
 import edu.cbsystematics.com.libraryprojectcbs.models.UserRole;
 import edu.cbsystematics.com.libraryprojectcbs.repository.UserRepository;
+import edu.cbsystematics.com.libraryprojectcbs.utils.period.CountUsersFromTimePeriod;
+import edu.cbsystematics.com.libraryprojectcbs.utils.period.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,12 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static edu.cbsystematics.com.libraryprojectcbs.LibraryProjectCbsApplication.ROLE_ADMIN;
 import static edu.cbsystematics.com.libraryprojectcbs.LibraryProjectCbsApplication.ROLE_READER;
+
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -43,19 +45,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void createUserDatabaseInit(User user) {
-        // Check created user details
-        validateCreatedUserDetails(user);
+        // Check if user already exists in the database
+        if (checkCreatedUserDetails(user)) {
+            return;
+        }
 
         // Encrypt the user's password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-
         // Save the new user
-        User newUser = userRepository.save(user);
-
-        // Print the new user
-        print (newUser);
+        userRepository.save(user);
     }
 
+    @Loggable(value = ActionType.CREATE)
     @Override
     public void createUserRegistration(UserRegistrationDTO registrationDTO) {
         User user = new User();
@@ -64,52 +65,65 @@ public class UserServiceImpl implements UserService {
         user.setBirthDate(registrationDTO.getBirthDate());
         user.setPhone(registrationDTO.getPhone());
         user.setEmail(registrationDTO.getEmail());
+
+        // Check if user already exists in the database
+        if (checkCreatedUserDetails(user)) {
+            throw new UserAlreadyExistsException("User with full name '" + user.getFirstName() + " " + user.getLastName() + "' and birthdate '" + user.getBirthDate() + "' already exists.");
+
+        }
+
         // Encrypt the user's password
         user.setPassword(passwordEncoder.encode(registrationDTO.getPassword()));
         user.setRegDate(LocalDate.now());
-
         // Check if the role "ROLE_READER" already exists
-        Optional<UserRole> roleReader = userRoleService.findRoleByName(ROLE_READER);
-        if (roleReader.isEmpty()) {
-            // Role doesn't exist, create and save it
-            user.setUserRole(new UserRole(ROLE_READER, "Reader role with access to browse and borrow library resources"));
-        } else {
-            // Role exists, use it
-            user.setUserRole(roleReader.get());
+        UserRole roleReader = userRoleService.findRoleByName(ROLE_READER);
+        // Role doesn't exist, create and save it or Role exists, use it
+        user.setUserRole(Objects.requireNonNullElseGet(roleReader, () -> new UserRole(ROLE_READER, "Reader role with access to browse and borrow library resources")));
+        // Save the user
+        userRepository.save(user);
+    }
+
+    @Loggable(value = ActionType.CREATE)
+    @Override
+    public void createUser(User createdUser) {
+        // Check if user already exists in the database
+        if (checkCreatedUserDetails(createdUser)) {
+            throw new UserAlreadyExistsException("User with full name '" + createdUser.getFirstName() + " " + createdUser.getLastName() + "' and birthdate '" + createdUser.getBirthDate() + "' already exists.");
         }
 
-        // Check created user details
-        validateCreatedUserDetails(user);
+        createdUser.setPassword(passwordEncoder.encode(createdUser.getPassword()));
+        createdUser.setRegDate(LocalDate.now());
 
         // Save the user
-        User newRegUser = userRepository.save(user);
-
-        print (newRegUser);
-
+        userRepository.save(createdUser);
     }
-
 
     // Method for checking the data of the user
-    private void validateCreatedUserDetails(User user) {
-        if (userRepository.existsByFirstName(user.getFirstName())
+    private boolean checkCreatedUserDetails(User user) {
+        return userRepository.existsByFirstName(user.getFirstName())
                 && userRepository.existsByLastName(user.getLastName())
-                && userRepository.existsByBirthDate(user.getBirthDate())) {
-            throw new UserAlreadyExistsException(
-                    "User with First Name: '" + user.getFirstName() + "', Last Name '" + user.getLastName() +
-                            "', Date of birth '" + user.getBirthDate() + "' already exists");
-        }
+                && userRepository.existsByBirthDate(user.getBirthDate());
     }
 
+    @Loggable(value = ActionType.UPDATE)
     @Override
     @Transactional
     public void updateUser(Long id, User updatedUser) {
         // Retrieve the existing user
-        Optional<User> existingUserOptional = userRepository.findById(id);
-        if (existingUserOptional.isPresent()) {
-            User existingUser = existingUserOptional.get();
-            // Check updated user details
-            validateUpdatedUserDetails(existingUser, updatedUser);
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found" + id));
+
+        // Check if user already exists in the database
+        if (checkUpdatedUserDetails(existingUser, updatedUser, id)) {
+            throw new UserAlreadyExistsException("User with full name '" + updatedUser.getFirstName() + " " + updatedUser.getLastName() + "' and birthdate '" + updatedUser.getBirthDate() + "' already exists.");
         }
+
+        // Check if the password has changed
+        boolean isPasswordChanged = !updatedUser.getPassword().equals(existingUser.getPassword());
+        String encodedPassword = isPasswordChanged ? passwordEncoder.encode(updatedUser.getPassword()) : updatedUser.getPassword();
+        // Output to console
+        System.out.println("isPasswordChanged: " + (isPasswordChanged ? "yes" : "no"));
+
         // Update fields
         userRepository.updateUser(
                 id,
@@ -118,38 +132,51 @@ public class UserServiceImpl implements UserService {
                 updatedUser.getBirthDate(),
                 updatedUser.getPhone(),
                 updatedUser.getEmail(),
-                updatedUser.getPassword(),
+                encodedPassword,
                 updatedUser.getRegDate(),
                 updatedUser.getUserRole()
         );
     }
 
-    private void validateUpdatedUserDetails(User existingUser, User updatedUser) {
-        if ((!existingUser.getFirstName().equals(updatedUser.getFirstName()) && userRepository.existsByFirstName(updatedUser.getFirstName())) ||
-                (!existingUser.getLastName().equals(updatedUser.getLastName()) && userRepository.existsByLastName(updatedUser.getLastName())) ||
-                (!existingUser.getBirthDate().equals(updatedUser.getBirthDate()) && userRepository.existsByBirthDate(updatedUser.getBirthDate()))) {
-            throw new UserAlreadyExistsException(
-                    "User with First Name: '" + updatedUser.getFirstName() + "', Last Name '" + updatedUser.getLastName() +
-                            "', Date of birth '" + updatedUser.getBirthDate() + "' already exists");
-        }
+    // Method for checking the data of the user
+    private boolean checkUpdatedUserDetails(User existingUser, User updatedUser, Long id) {
+        return (existingUser.getFirstName().equals(updatedUser.getFirstName()) || !userRepository.existsByFirstName(updatedUser.getFirstName())) &&
+                (existingUser.getLastName().equals(updatedUser.getLastName()) || !userRepository.existsByLastName(updatedUser.getLastName())) &&
+                (existingUser.getBirthDate().equals(updatedUser.getBirthDate()) || !userRepository.existsByBirthDate(updatedUser.getBirthDate())) &&
+                !Objects.equals(existingUser.getId(), id);
     }
 
+    @Loggable(value = ActionType.UPDATE)
     @Override
     @Transactional
-    public void partialEdit(Long id, String firstName, String lastName, LocalDate birthDate, String phone, String email, String password) {
+    public void partialUpdateUser(Long id, String firstName, String lastName, LocalDate birthDate, String phone, String email, String password) {
         // Retrieve the existing user
-        Optional<User> existingReaderOptional = userRepository.findById(id);
-        // Check for details updatedUser
-        if (existingReaderOptional.isPresent()) {
-            User existingUser = existingReaderOptional.get();
-            // Validate the updated details
-            validatePartialEditDetails(existingUser, firstName, lastName, birthDate);
-        }
-        // Update the reader
-        userRepository.partialEdit(id, firstName, lastName, birthDate, phone, email, password);
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found" + id));
+
+        // Check updated user details
+        checkUpdatedUserDetails(existingUser, firstName, lastName, birthDate);
+
+        // Check if the password has changed
+        boolean isPasswordChanged = !password.equals(existingUser.getPassword());
+        String encodedPassword = isPasswordChanged ? passwordEncoder.encode(password) : password;
+        // Output to console
+        System.out.println("isPasswordChanged: " + (isPasswordChanged ? "yes" : "no"));
+
+        // Update the user
+        userRepository.partialUpdateUser(
+                id,
+                firstName,
+                lastName,
+                birthDate,
+                phone,
+                email,
+                encodedPassword
+        );
     }
 
-    private void validatePartialEditDetails(User existingUser, String firstName, String lastName, LocalDate birthDate) {
+    // Method for checking the data of the user
+    private void checkUpdatedUserDetails(User existingUser, String firstName, String lastName, LocalDate birthDate) {
         if ((!existingUser.getFirstName().equals(firstName) && userRepository.existsByFirstName(firstName)) ||
                 (!existingUser.getLastName().equals(lastName) && userRepository.existsByLastName(lastName)) ||
                 (!existingUser.getBirthDate().equals(birthDate) && userRepository.existsByBirthDate(birthDate))) {
@@ -174,9 +201,24 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Loggable(value = ActionType.DELETE)
     @Override
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    public void deleteAdmin(Long id) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user != null) {
+
+            // Remove the role association if it exists
+            user.setUserRole(null);
+            userRepository.deleteById(id);
+        } else {
+            throw new UserNotFoundException("Admin not found");
+        }
+    }
+
+
+    @Override
+    public Optional<User> getUserById(Long userId) {
+        return userRepository.findById(userId);
     }
 
     @Override
@@ -216,7 +258,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<User> pagination(int pageNumber, int pageSize, String sortField, String sortDirection) {
+    public List<CountUsersFromTimePeriod> getUserRegistrationsByRole(UserRole role) {
+        LocalDate currentDate = DateUtils.getCurrentDate();
+        LocalDate previousDay = DateUtils.getPreviousDay();
+        LocalDate previousWeek = DateUtils.getPreviousWeek();
+        LocalDate previousMonth = DateUtils.getPreviousMonth();
+        LocalDate previousSixMonths = DateUtils.getPreviousSixMonths();
+        LocalDate previousYear = DateUtils.getPreviousYear();
+        LocalDate forAllTime = DateUtils.getAllTime();
+
+        return Collections.singletonList(
+                CountUsersFromTimePeriod.builder()
+                        .countUsersFromCurrentDate(userRepository.countUsersByRoleAddedAfterDate(role, currentDate))
+                        .countUsersFromPreviousDay(userRepository.countUsersByRoleAddedAfterDate(role, previousDay))
+                        .countUsersFromPreviousWeek(userRepository.countUsersByRoleAddedAfterDate(role, previousWeek))
+                        .countUsersFromPreviousMonth(userRepository.countUsersByRoleAddedAfterDate(role, previousMonth))
+                        .countUsersFromPreviousSixMonths(userRepository.countUsersByRoleAddedAfterDate(role, previousSixMonths))
+                        .countUsersFromPreviousYear(userRepository.countUsersByRoleAddedAfterDate(role, previousYear))
+                        .countUsersFromAllTime(userRepository.countUsersByRoleAddedAfterDate(role, forAllTime))
+                        .build()
+        );
+    }
+
+    @Override
+    public Page<User> paginationUsers(Integer pageNumber, Integer pageSize, String sortField, String sortDirection) {
 
         // Check if sortField is "age" or "term"
         if ("age".equals(sortField) || "term".equals(sortField)) {
@@ -255,14 +320,6 @@ public class UserServiceImpl implements UserService {
             return userRepository.findAll(pageable);
         }
 
-    }
-
-    private void print (User user) {
-        String fullName = user.getFirstName() + " " + user.getLastName();
-        String email = user.getEmail();
-        String role = user.getUserRole().getRoleName();
-        String message = String.format("\033[1;31mUser created successfully: %s, Email: %s, Role: %s\033[0m", fullName, email, role);
-        System.out.println(message);
     }
 
 

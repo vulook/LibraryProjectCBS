@@ -1,6 +1,6 @@
 package edu.cbsystematics.com.libraryprojectcbs.controller;
 
-import edu.cbsystematics.com.libraryprojectcbs.config.aspect.Loggable;
+import edu.cbsystematics.com.libraryprojectcbs.aop.Loggable;
 import edu.cbsystematics.com.libraryprojectcbs.models.ActionType;
 import edu.cbsystematics.com.libraryprojectcbs.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

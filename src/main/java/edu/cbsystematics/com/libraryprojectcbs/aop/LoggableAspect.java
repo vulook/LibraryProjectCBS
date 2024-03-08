@@ -1,4 +1,4 @@
-package edu.cbsystematics.com.libraryprojectcbs.config.aspect;
+package edu.cbsystematics.com.libraryprojectcbs.aop;
 
 import edu.cbsystematics.com.libraryprojectcbs.config.security.UserAuthenticationUtils;
 import edu.cbsystematics.com.libraryprojectcbs.models.ActionType;
@@ -34,7 +34,7 @@ public class LoggableAspect {
     }
 
 
-    @Around(value = "@annotation(edu.cbsystematics.com.libraryprojectcbs.config.aspect.Loggable)")
+    @Around(value = "@annotation(edu.cbsystematics.com.libraryprojectcbs.aop.Loggable)")
     public Object autoLoggableHandler(ProceedingJoinPoint joinPoint) throws Throwable {
 
         Method method;
@@ -80,7 +80,7 @@ public class LoggableAspect {
         }
 
         // Retrieves the current user's email and role using an authentication object
-        String email = userAuthenticationUtils.getCurrentUserUsername(authentication);
+        String email = userAuthenticationUtils.getCurrentUsername(authentication);
         String role = userAuthenticationUtils.getCurrentUserRoles(authentication);
 
         // Log the action

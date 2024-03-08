@@ -45,7 +45,7 @@ public class SecurityConfig {
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         // Output a message when the user is authenticated
-        authProvider.setPostAuthenticationChecks((userDetails) -> {
+        authProvider.setPostAuthenticationChecks(userDetails -> {
             System.out.print("\033[1;32m");
             System.out.println("User " + userDetails.getUsername() + " logged in with role: " + userDetails.getAuthorities());
             System.out.print("\033[0m");
@@ -62,6 +62,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
+                                "/library",
+                                "/access-denied",
+                                "/404",
                                 "/registration",
                                 "/forgot-password",
                                 "/reset-password",
@@ -71,7 +74,8 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/img/**",
                                 "/webjars/**").permitAll()
-                        .requestMatchers("/library/**").hasAnyRole("ADMIN")
+                        .requestMatchers("/library/admin/home/**").hasAnyRole("ADMIN")
+                        .requestMatchers("/library/reader/home/**").hasAnyRole("READER")
                         .anyRequest().authenticated()
                 )
 
@@ -83,7 +87,7 @@ public class SecurityConfig {
                 )
 
                 // Configure logout
-                .logout((logout) -> logout
+                .logout(logout -> logout
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
@@ -92,8 +96,7 @@ public class SecurityConfig {
                         .permitAll()
                 )
 
-                // Configure access denied handler
-                .exceptionHandling((exceptionHandling) -> exceptionHandling
+                .exceptionHandling(exceptionHandling -> exceptionHandling
                         .accessDeniedHandler(accessDeniedHandler)
                 );
 

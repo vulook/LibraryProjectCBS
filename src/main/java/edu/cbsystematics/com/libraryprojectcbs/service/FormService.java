@@ -1,6 +1,7 @@
 package edu.cbsystematics.com.libraryprojectcbs.service;
 
 import edu.cbsystematics.com.libraryprojectcbs.models.Form;
+import edu.cbsystematics.com.libraryprojectcbs.models.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,4 +23,5 @@ public interface FormService {
     // Retrieve a list of all forms
     List<Form> getAllForms();
 
+    List<Form> getFormsByUser(User currentReader);
 }

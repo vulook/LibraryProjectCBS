@@ -5,7 +5,6 @@ import edu.cbsystematics.com.libraryprojectcbs.models.User;
 import edu.cbsystematics.com.libraryprojectcbs.models.UserRole;
 import edu.cbsystematics.com.libraryprojectcbs.repository.UserRepository;
 import edu.cbsystematics.com.libraryprojectcbs.repository.UserRoleRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,13 +27,29 @@ public class UserRoleServiceImpl implements UserRoleService {
         this.userRepository = userRepository;
     }
 
+
     @Override
-    public void createRole(UserRole userRole) throws UserRoleAlreadyExistsException {
+    public void createRoleDatabaseInit(UserRole userRole) {
         // Check for Role name
-        if (userRoleRepository.existsByRoleName(userRole.getRoleName())) {
-            throw new UserRoleAlreadyExistsException("UserRole with name " + userRole.getRoleName() + " already exists");
+        if (checkRoleNameExists(userRole.getRoleName())) {
+            return;
         }
         userRoleRepository.save(userRole);
+    }
+
+    @Override
+    public void createRole(UserRole userRole) {
+        // Check for Role name
+        if (checkRoleNameExists(userRole.getRoleName())) {
+            throw new UserRoleAlreadyExistsException("UserRole with name " + userRole.getRoleName() + " already exists");
+        }
+
+        userRoleRepository.save(userRole);
+    }
+
+
+    private boolean checkRoleNameExists(String roleName) {
+        return userRoleRepository.existsByRoleName(roleName);
     }
 
     @Override
@@ -135,8 +150,14 @@ public class UserRoleServiceImpl implements UserRoleService {
     }
 
     @Override
-    public Optional<UserRole> findRoleByName(String roleName) {
-        return userRoleRepository.findRoleByName(roleName);
+    public UserRole findRoleByName(String roleName) {
+        Optional<UserRole> optionalUserRole = Optional.ofNullable(userRoleRepository.findByRoleName(roleName));
+        return optionalUserRole.orElse(null);
+    }
+
+    @Override
+    public boolean existsByRoleName(String roleName) {
+        return userRoleRepository.existsByRoleName(roleName);
     }
 
     @Override
@@ -156,27 +177,26 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     // Finds the user role with the name ROLE_ADMIN
     private UserRole findAdminRole() {
-        return findRoleByName(ROLE_ADMIN)
-                .orElseThrow(() -> new UserRoleNotFoundException("Role not found: " + ROLE_ADMIN));
+        UserRole adminRole = findRoleByName(ROLE_ADMIN);
+        if (adminRole == null) {
+            throw new UserRoleNotFoundException("Role not found: " + ROLE_ADMIN);
+        }
+        return adminRole;
     }
 
     @Override
     public void createAdmin(User user) {
         // Check if the ROLE_ADMIN role exists
         UserRole adminRole = findAdminRole();
-        if (adminRole != null) {
-            // Set user role and registration date
-            user.setUserRole(adminRole);
-            user.setRegDate(LocalDate.now());
+        // Set user role and registration date
+        user.setUserRole(adminRole);
+        user.setRegDate(LocalDate.now());
 
-            // Check created user details
-            validateCreatedUserDetails(user);
+        // Check created user details
+        validateCreatedUserDetails(user);
 
-            // Save the user
-            userRepository.save(user);
-        } else {
-            throw new UserRoleNotFoundException("Role not found: " + ROLE_ADMIN);
-        }
+        // Save the user
+        userRepository.save(user);
     }
 
     // Method for checking the data of the user

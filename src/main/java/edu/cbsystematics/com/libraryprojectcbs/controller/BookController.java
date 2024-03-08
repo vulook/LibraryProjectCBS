@@ -63,10 +63,10 @@ public class BookController {
     public String createBook(@ModelAttribute Book book, RedirectAttributes redirectAttributes) {
         try {
             bookService.createBook(book);
-            redirectAttributes.addFlashAttribute("successMessage", "Book '" + book.getBookName() + "' successfully created.");
+            redirectAttributes.addAttribute("successMessage", "Book '" + book.getBookName() + "' successfully created.");
             return "redirect:/library/books/success";
         } catch (BookAlreadyExistsException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            redirectAttributes.addAttribute("errorMessage", ex.getMessage());
             return "redirect:/library/books/error";
         }
     }
@@ -99,7 +99,7 @@ public class BookController {
                 redirectAttributes.addAttribute("successMessage", "Book '" + existingBookOptional.get().getBookName() + "' successfully updated.");
                 return "redirect:/library/books/success";
             } catch (BookAlreadyExistsException ex) {
-                redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+                redirectAttributes.addAttribute("errorMessage", ex.getMessage());
                 return "redirect:/library/books/error";
             }
         } else {

@@ -1,4 +1,4 @@
-package edu.cbsystematics.com.libraryprojectcbs.config.comporator;
+package edu.cbsystematics.com.libraryprojectcbs.utils.comparator;
 
 import edu.cbsystematics.com.libraryprojectcbs.models.User;
 

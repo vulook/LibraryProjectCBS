@@ -1,19 +1,23 @@
 package edu.cbsystematics.com.libraryprojectcbs.models;
 
-import edu.cbsystematics.com.libraryprojectcbs.config.comporator.ComparatorAge;
-import edu.cbsystematics.com.libraryprojectcbs.config.comporator.ComparatorTerm;
+import edu.cbsystematics.com.libraryprojectcbs.utils.comparator.ComparatorAge;
+import edu.cbsystematics.com.libraryprojectcbs.utils.comparator.ComparatorTerm;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SortComparator;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @DynamicUpdate
 @NoArgsConstructor
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
@@ -30,6 +34,7 @@ public class User {
     @Column(name = "last_name", nullable = false, columnDefinition = "varchar(50)")
     private String lastName;
 
+    @DateTimeFormat(pattern = "dd-MM-yyyy")
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 
@@ -42,6 +47,7 @@ public class User {
     @Column(name = "password", nullable = false, columnDefinition = "varchar(80)")
     private String password;
 
+    @DateTimeFormat(pattern = "dd-MM-yyyy")
     @Column(name = "reg_date", nullable = false)
     private LocalDate regDate;
 
@@ -90,7 +96,6 @@ public class User {
         this.userRole = userRole;
     }
 
-
     @Transient
     private int age;
 
@@ -99,7 +104,10 @@ public class User {
 
     // This method returns the age of the current user
     @SortComparator(ComparatorAge.class)
-    public int getAge() {
+    public Integer getAge() {
+        if (this.birthDate == null) {
+            return -1;
+        }
         LocalDate currentDate = LocalDate.now();
         Period period = Period.between(this.birthDate, currentDate);
         return period.getYears();
@@ -107,10 +115,27 @@ public class User {
 
     // This method returns the term user in the library
     @SortComparator(ComparatorTerm.class)
-    public int getTerm() {
+    public Integer getTerm() {
+        if (this.regDate == null) {
+            return -1;
+        }
         LocalDate currentDate = LocalDate.now();
-        Period period = Period.between(this.regDate, currentDate);
-        return period.getYears();
+        long years = ChronoUnit.YEARS.between(this.regDate, currentDate);
+        return (int) years;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", birthDate=" + birthDate +
+                ", phone='" + phone + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", regDate=" + regDate +
+                '}';
     }
 
 }

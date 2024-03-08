@@ -14,8 +14,11 @@ public class Card {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    @Column(name = "id")
-    private long id;
+    @Column(name = "id", nullable = false, columnDefinition = "BIGINT")
+    private Long id;
+
+    @Column(name = "approved", nullable = false)
+    private boolean approved;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
@@ -28,6 +31,7 @@ public class Card {
     public Card(User user, Book book) {
         this.user = user;
         this.book = book;
+        this.approved = false; // Default value
     }
 
 }

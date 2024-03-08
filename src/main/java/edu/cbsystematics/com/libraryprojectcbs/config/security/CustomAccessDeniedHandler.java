@@ -16,7 +16,7 @@ import java.io.IOException;
 @Component
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(AccessDeniedHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(CustomAccessDeniedHandler.class);
 
     @Override
     public void handle(HttpServletRequest request,
@@ -30,9 +30,8 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
             // Set the accessDeniedUri attribute
             request.getSession().setAttribute("accessDeniedUri", uri);
 
-            logger.info(auth.getName()
-                    + " was trying to access protected resource: "
-                    + uri);
+            logger.info("{} was trying to access protected resource: {}", auth.getName(), uri);
+
         }
 
         response.sendRedirect("/access-denied");

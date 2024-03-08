@@ -2,16 +2,14 @@ package edu.cbsystematics.com.libraryprojectcbs.config;
 
 import edu.cbsystematics.com.libraryprojectcbs.models.*;
 import edu.cbsystematics.com.libraryprojectcbs.service.*;
-import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static edu.cbsystematics.com.libraryprojectcbs.LibraryProjectCbsApplication.*;
 
 
-@Component
+//@Component
 public class DatabaseInitializer {
 
     private final UserService userService;
@@ -21,7 +19,7 @@ public class DatabaseInitializer {
     private final CardService cardService;
 
 
-    @Autowired
+    //@Autowired
     public DatabaseInitializer(UserService userService, UserRoleService userRoleService, BookService bookService, FormService formService, CardService cardService) {
         this.userService = userService;
         this.userRoleService = userRoleService;
@@ -30,30 +28,74 @@ public class DatabaseInitializer {
         this.cardService = cardService;
     }
 
-    @PostConstruct
+    //@PostConstruct
     public void init() {
 
         // Creating and Saving the roles in the database
         UserRole adminRole = new UserRole(ROLE_ADMIN, "Administrator role with full access and control over the system");
         UserRole librarianRole = new UserRole(ROLE_LIBRARIAN, "Librarian role responsible for managing and organizing library resources");
         UserRole readerRole = new UserRole(ROLE_READER, "Reader role with access to browse and borrow library resources");
+        UserRole workerRole = new UserRole(ROLE_WORKER, "Sweep and mop the floors, Dust furniture and shelves, Take out the trash.");
 
-        userRoleService.createRole(adminRole);
-        userRoleService.createRole(librarianRole);
-        userRoleService.createRole(readerRole);
+        userRoleService.createRoleDatabaseInit(adminRole);
+        userRoleService.createRoleDatabaseInit(librarianRole);
+        userRoleService.createRoleDatabaseInit(readerRole);
+        userRoleService.createRoleDatabaseInit(workerRole);
 
         // Creating and Saving users in the database
-        User admin = new User("Ben", "Smith", LocalDate.of(1982, 1, 15), "+38 (066) 860-92-21", "admin@example.com", "123", LocalDate.of(2015, 10, 2), adminRole);
-        User librarian = new User("Clara", "Brown", LocalDate.of(1992, 5, 5), "+38 (097) 311-02-00", "librarian@example.com", "123", LocalDate.of(2015, 10, 20), librarianRole);
-        User reader1 = new User("Jane", "Doe", LocalDate.of(2005, 3, 15), "+38 (098) 962-22-12", "reader1@example.com", "123", LocalDate.of(2023, 5, 15), readerRole);
-        User reader2 = new User("Elizabeth", "Roberts", LocalDate.of(2008, 7, 20), "+38 (095) 110-11-10", "reader2@example.com", "123", LocalDate.of(2019, 6, 15), readerRole);
-        User reader3 = new User("Liam", "Wang", LocalDate.of(2002, 12, 10), "+38 (066) 545-55-15", "reader3@example.com", "123", LocalDate.of(2022, 10, 15), readerRole);
+        User admin = new User("Ben", "Smith", LocalDate.of(1982, 1, 15), "+38 (066) 860-92-21", "admin@example.com", "123", LocalDate.of(2020, 4, 1), adminRole);
+        User librarian1 = new User("Megan", "Robinson", LocalDate.of(1992, 5, 5), "+38 (097) 311-02-00", "libr1@example.com", "123", LocalDate.of(2020, 4, 15), librarianRole);
+        User librarian2 = new User("Christopher", "Anderson", LocalDate.of(1982, 5, 16), "+38 (097) 600-60-66", "libr2@example.com", "123", LocalDate.of(2022, 4, 14), librarianRole);
+        User reader1 = new User("Jane", "Doe", LocalDate.of(2005, 3, 15), "+38 (098) 962-22-12", "reader1@example.com", "123", LocalDate.of(2022, 12, 20), readerRole);
+        User reader2 = new User("Elizabeth", "Roberts", LocalDate.of(2008, 7, 20), "+38 (095) 110-11-10", "reader2@example.com", "123", LocalDate.of(2022, 12, 26), readerRole);
+        User reader3 = new User("Liam", "Wang", LocalDate.of(2002, 1, 10), "+38 (066) 545-55-15", "reader3@example.com", "123", LocalDate.of(2023, 8, 2), readerRole);
+        User reader4 = new User("Olga", "Greyson", LocalDate.of(1998, 5, 2), "+38 (095) 555-44-33", "reader4@example.com", "123", LocalDate.of(2023, 9, 23), readerRole);
+        User reader5 = new User("Noah", "Brown", LocalDate.of(2000, 3, 14), "+38 (063) 333-22-11", "reader5@example.com", "123", LocalDate.of(2023, 9, 7), readerRole);
+        User reader6 = new User("Anna", "Fox", LocalDate.of(1999, 12, 13), "+38 (066) 545-55-15", "reader6@example.com", "123", LocalDate.of(2023, 10, 22), readerRole);
+        User reader7 = new User("Emilia", "Proper", LocalDate.of(2004, 8, 27), "+38 (097) 777-66-55", "reader7@example.com", "123", LocalDate.of(2023, 11, 1), readerRole);
+        User reader8 = new User("Ava", "Willow", LocalDate.of(2006, 2, 19), "+38 (093) 444-33-22", "reader8@example.com", "123", LocalDate.of(2023, 11, 9), readerRole);
+        User reader9 = new User("William", "Griffin", LocalDate.of(1999, 10, 11), "+38 (067) 222-11-00", "reader9@example.com", "123", LocalDate.of(2023, 11, 28), readerRole);
+        User reader10 = new User("Sophia", "Pink", LocalDate.of(2001, 7, 4), "+38 (099) 111-00-99", "reader10@example.com", "123", LocalDate.of(2023, 12, 1), readerRole);
+        User reader11 = new User("James", "Oran", LocalDate.of(2003, 4, 16), "+38 (068) 888-77-66", "reader11@example.com", "123", LocalDate.of(2023, 12, 5), readerRole);
+        User reader12 = new User("Isabella", "Yellow", LocalDate.of(2005, 11, 28), "+38 (096) 666-55-44", "reader12@example.com", "123", LocalDate.of(2024, 1, 25), readerRole);
+        User reader13 = new User("Benjamin", "Purple", LocalDate.of(2001, 6, 20), "+38 (098) 555-44-33", "reader13@example.com", "123", LocalDate.of(2024, 1, 25), readerRole);
+        User reader14 = new User("Olivia", "Whitman", LocalDate.of(2003, 3, 14), "+38 (063) 444-33-22", "reader14@example.com", "123", LocalDate.of(2024, 1, 8), readerRole);
+        User reader15 = new User("Gracie", "Gretchen", LocalDate.of(1999, 10, 5), "+38 (095) 333-22-11", "reader15@example.com", "123", LocalDate.of(2024, 2, 1), readerRole);
+        User reader16 = new User("Emma", "Pink", LocalDate.of(2004, 7, 22), "+38 (067) 222-11-00", "reader16@example.com", "123", LocalDate.of(2024, 2, 1), readerRole);
+        User worker1 = new User("Alexander", "Greyson", LocalDate.of(2000, 2, 1), "+38 (097) 111-00-99", "worker1@example.com", "123", LocalDate.of(2024, 2, 5), workerRole);
+        User worker2 = new User("Sophia", "Red", LocalDate.of(2002, 5, 17), "+38 (066) 000-99-88", "worker2@example.com", "123", LocalDate.of(2024, 2, 5), workerRole);
+        User reader19 = new User("Elijah", "Black", LocalDate.of(1998, 8, 30), "+38 (093) 999-88-77", "reader19@example.com", "123", LocalDate.of(2024, 2, 10), readerRole);
+        User reader20 = new User("Gracie", "Grant", LocalDate.of(2006, 1, 10), "+38 (068) 888-77-66", "reader20@example.com", "123", LocalDate.of(2024, 2, 19), readerRole);
+        User reader21 = new User("Whittaker", "Winter", LocalDate.of(2009, 4, 24), "+38 (099) 777-66-55", "reader21@example.com", "123", LocalDate.of(2024, 3, 1), readerRole);
+        User reader22 = new User("Mia", "Grayer", LocalDate.of(2003, 9, 7), "+38 (064) 666-55-44", "reader22@example.com", "123", LocalDate.of(2024, 3, 10), readerRole);
+        User reader23 = new User("Lana", "Bellow", LocalDate.of(2007, 12, 20), "+38 (092) 555-44-33", "reader23@example.com", "123", LocalDate.of(2024, 3, 12), readerRole);
 
         userService.createUserDatabaseInit(admin);
-        userService.createUserDatabaseInit(librarian);
+        userService.createUserDatabaseInit(librarian1);
+        userService.createUserDatabaseInit(librarian2);
         userService.createUserDatabaseInit(reader1);
         userService.createUserDatabaseInit(reader2);
         userService.createUserDatabaseInit(reader3);
+        userService.createUserDatabaseInit(reader4);
+        userService.createUserDatabaseInit(reader5);
+        userService.createUserDatabaseInit(reader6);
+        userService.createUserDatabaseInit(reader7);
+        userService.createUserDatabaseInit(reader8);
+        userService.createUserDatabaseInit(reader9);
+        userService.createUserDatabaseInit(reader10);
+        userService.createUserDatabaseInit(reader11);
+        userService.createUserDatabaseInit(reader12);
+        userService.createUserDatabaseInit(reader13);
+        userService.createUserDatabaseInit(reader14);
+        userService.createUserDatabaseInit(reader15);
+        userService.createUserDatabaseInit(reader16);
+        userService.createUserDatabaseInit(worker1);
+        userService.createUserDatabaseInit(worker2);
+        userService.createUserDatabaseInit(reader19);
+        userService.createUserDatabaseInit(reader20);
+        userService.createUserDatabaseInit(reader21);
+        userService.createUserDatabaseInit(reader22);
+        userService.createUserDatabaseInit(reader23);
 
         // Creating authors
         Author author1 = new Author("George", "Orwell");
@@ -99,31 +141,31 @@ public class DatabaseInitializer {
         Author author41 = new Author("Zane", "Julius");
 
         // Creating books
-        Book book1 = new Book("1984", Genre.FICTION, 328, 5, 4.5);
-        Book book2 = new Book("The Catcher in the Rye", Genre.FICTION, 224, 5, 4.0);
-        Book book3 = new Book("To Kill a Mockingbird", Genre.FICTION, 336, 4, 4.8);
-        Book book4 = new Book("The Lord of the Rings", Genre.FANTASY, 1178, 2, 4.5);
-        Book book5 = new Book("The Hitchhiker's Guide to the Galaxy", Genre.SCIENCE_FICTION, 224, 4, 4.0);
-        Book book6 = new Book("The Da Vinci Code", Genre.MYSTERY, 454, 2, 4.5);
-        Book book7 = new Book("The Hunger Games", Genre.SCIENCE_FICTION, 374, 3, 4.2);
-        Book book8 = new Book("Harry Potter and the Sorcerer's Stone", Genre.FANTASY, 321, 3, 4.7);
-        Book book9 = new Book("The Girl with the Dragon Tattoo", Genre.MYSTERY, 712, 2, 4.4);
-        Book book10 = new Book("The Fault in Our Stars", Genre.PUBLICATION, 313, 5, 4.3);
-        Book book11 = new Book("The Martian", Genre.SCIENCE_FICTION, 390, 1, 4.4);
-        Book book12 = new Book("The Alchemist", Genre.FICTION, 202, 2, 4.0);
-        Book book13 = new Book("The Secret", Genre.SELF_HELP, 178, 1, 3.7);
-        Book book14 = new Book("The 4-Hour Workweek", Genre.SELF_HELP, 448, 2, 4.1);
-        Book book15 = new Book("The Lean Startup", Genre.PUBLICATION, 330, 2, 4.2);
-        Book book16 = new Book("The Power of Now", Genre.BIOGRAPHY, 241, 2, 4.1);
-        Book book17 = new Book("The Mindful Path to Self-Compassion", Genre.SELF_HELP, 312, 5, 4.3);
-        Book book18 = new Book("Book by Kristin Neff", Genre.SELF_HELP, 301, 4, 4.4);
-        Book book19 = new Book("The Hitchhiker's Guide to the Galaxy", Genre.SCIENCE_FICTION, 670, 5, 4.0);
-        Book book20 = new Book("The Lord of the Rings", Genre.FANTASY, 1478, 1, 4.5);
-        Book book21 = new Book("The Stand", Genre.HORROR, 1153, 1, 4.6);
-        Book book22 = new Book("The Winds of Winter", Genre.FANTASY, 1523, 2, 4.0);
-        Book book23 = new Book("The Codex Seraphinianus", Genre.PUBLICATION, 400, 3, 4.2);
-        Book book24 = new Book("Gone Girl", Genre.MYSTERY, 534, 2, 4.1);
-        Book book25 = new Book("The Bible С++", Genre.SCIENCE_FICTION, 876, 3, 4.8);
+        Book book1 = new Book("1984", GenreType.FICTION, 328, 5, LocalDateTime.of(2022, 3, 12, 12, 0));
+        Book book2 = new Book("The Catcher in the Rye", GenreType.FICTION, 224, 5, LocalDateTime.of(2022, 3, 12, 12, 0));
+        Book book3 = new Book("To Kill a Mockingbird", GenreType.FICTION, 336, 4, LocalDateTime.of(2022, 3, 12, 12, 0));
+        Book book4 = new Book("The Lord of the Rings", GenreType.FANTASY, 1178, 2, LocalDateTime.of(2022, 3, 12, 12, 0));
+        Book book5 = new Book("The Hitchhiker's Guide to the Galaxy", GenreType.SCIENCE_FICTION, 224, 4, LocalDateTime.of(2023, 6, 12, 12, 0));
+        Book book6 = new Book("The Da Vinci Code", GenreType.MYSTERY, 454, 2, LocalDateTime.of(2023, 6, 12, 12, 0));
+        Book book7 = new Book("The Hunger Games", GenreType.SCIENCE_FICTION, 374, 3, LocalDateTime.of(2023, 6, 12, 12, 0));
+        Book book8 = new Book("Harry Potter and the Sorcerer's Stone", GenreType.FANTASY, 321, 3, LocalDateTime.of(2024, 3, 12, 12, 0));
+        Book book9 = new Book("The Girl with the Dragon Tattoo", GenreType.MYSTERY, 712, 2, LocalDateTime.of(2023, 3, 12, 12, 0));
+        Book book10 = new Book("The Fault in Our Stars", GenreType.PUBLICATION, 313, 5, LocalDateTime.of(2023, 9, 1, 12, 0));
+        Book book11 = new Book("The Martian", GenreType.SCIENCE_FICTION, 390, 1, LocalDateTime.of(2023, 9, 1, 12, 0));
+        Book book12 = new Book("The Alchemist", GenreType.FICTION, 202, 2, LocalDateTime.of(2023, 9, 12, 1, 0));
+        Book book13 = new Book("The Secret", GenreType.SELF_HELP, 178, 1, LocalDateTime.of(2023, 9, 12, 1, 0));
+        Book book14 = new Book("The 4-Hour Workweek", GenreType.SELF_HELP, 448, 2, LocalDateTime.of(2023, 9, 1, 12, 0));
+        Book book15 = new Book("The Lean Startup", GenreType.PUBLICATION, 330, 2, LocalDateTime.of(2023, 12, 1, 12, 0));
+        Book book16 = new Book("The Power of Now", GenreType.BIOGRAPHY, 241, 2, LocalDateTime.of(2023, 12, 1, 12, 0));
+        Book book17 = new Book("The Mindful Path to Self-Compassion", GenreType.SELF_HELP, 312, 5, LocalDateTime.of(2023, 12, 1, 12, 0));
+        Book book18 = new Book("Book by Kristin Neff", GenreType.SELF_HELP, 301, 4, LocalDateTime.of(2024, 2, 1, 2, 0));
+        Book book19 = new Book("The Hitchhiker's Guide to the Galaxy", GenreType.SCIENCE_FICTION, 670, 5, LocalDateTime.of(2024, 2, 1, 12, 0));
+        Book book20 = new Book("The Lord of the Rings", GenreType.FANTASY, 1478, 1, LocalDateTime.of(2024, 2, 1, 12, 0));
+        Book book21 = new Book("The Stand", GenreType.HORROR, 1153, 1, LocalDateTime.of(2024, 2, 1, 12, 0));
+        Book book22 = new Book("The Winds of Winter", GenreType.FANTASY, 1523, 2, LocalDateTime.of(2024, 3, 1, 12, 0));
+        Book book23 = new Book("The Codex Seraphinianus", GenreType.PUBLICATION, 400, 3, LocalDateTime.of(2024, 3, 1, 12, 0));
+        Book book24 = new Book("Gone Girl", GenreType.MYSTERY, 534, 2, LocalDateTime.of(2024, 3, 1, 12, 0));
+        Book book25 = new Book("The Bible С++", GenreType.SCIENCE_FICTION, 876, 3, LocalDateTime.of(2024, 3, 1, 12, 0));
 
         // Save authors and books in the database
         bookService.addAuthorAndBook(author1, book1);

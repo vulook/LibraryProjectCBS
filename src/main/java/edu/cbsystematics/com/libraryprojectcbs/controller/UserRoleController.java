@@ -5,21 +5,21 @@ import edu.cbsystematics.com.libraryprojectcbs.models.User;
 import edu.cbsystematics.com.libraryprojectcbs.models.UserRole;
 import edu.cbsystematics.com.libraryprojectcbs.service.UserRoleService;
 import edu.cbsystematics.com.libraryprojectcbs.service.UserService;
-import jakarta.validation.Valid;
+import edu.cbsystematics.com.libraryprojectcbs.utils.role.RoleUtilsForDescription;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
+import static edu.cbsystematics.com.libraryprojectcbs.LibraryProjectCbsApplication.*;
 
 @Controller
-@RequestMapping("/library/roles")
+@PreAuthorize("hasRole('ADMIN')")
+@RequestMapping(ADMIN_HOME_URL)
 public class UserRoleController {
 
     private final UserRoleService userRoleService;
@@ -32,8 +32,29 @@ public class UserRoleController {
         this.userRoleService = userRoleService;
     }
 
-    @GetMapping("/list")
+    @GetMapping("/roles")
+    public String showRolesPage(@RequestParam(name = "tab", defaultValue = "tab1") String tab, Model model) {
+        model.addAttribute("tab", tab);
+        model.addAttribute("ADMIN_HOME_URL", ADMIN_HOME_URL);
+        return "roles/role-list";
+    }
+
+    @GetMapping("/roles-{tab}")
+    public String tab(@PathVariable String tab) {
+        if (Arrays.asList("tab1", "tab2", "tab3")
+                .contains(tab)) {
+            return "roles/_roles-" + tab;
+        }
+
+        return "roles/empty";
+    }
+
+    @GetMapping("/roles-tab1")
     public String displayRoles(Model model) {
+
+        // Create a new UserRole object
+        UserRole createdUserRole = new UserRole();
+
         // Retrieve a list of all roles
         List<UserRole> userRoles = userRoleService.getAllRoles();
 
@@ -51,94 +72,46 @@ public class UserRoleController {
             totalUsers += userCount;
         }
 
+        model.addAttribute("ADMIN_HOME_URL", ADMIN_HOME_URL);
+        model.addAttribute("createdUserRole", createdUserRole);
         model.addAttribute("roles", userRoles);
         model.addAttribute("userCountRole", userCountRole);
         model.addAttribute("totalUsers", totalUsers);
         model.addAttribute("usersWithoutRole", usersWithoutRole);
-        return "roles/role-list";
+        return "roles/_roles-tab1";
     }
 
-    @GetMapping("/list/{roleId}/users")
-    public String viewUsersByRole(@PathVariable Long roleId, Model model) {
-        // Retrieve the list of users associated with the specified role ID
-        List<User> users = userService.getListUsersByRoleId(roleId);
-        // Retrieve the total number of users for the specified role ID
-        int totalUsers = userService.getTotalUsersByRoleId(roleId);
-        // Retrieve the role name for the specified role ID
-        String roleName = userRoleService.getRoleNameById(roleId);
-
-        model.addAttribute("roleName", roleName);
-        model.addAttribute("totalUsers", totalUsers);
-        model.addAttribute("users", users);
-
-        // Return the logical view name for rendering the page displaying users for the given role
-        return "roles/role-users";
+    @GetMapping("/roles-tab2")
+    public String showCreateRoleForm(Model model) {
+        model.addAttribute("tab", "tab2");
+        model.addAttribute("ADMIN_HOME_URL", ADMIN_HOME_URL);
+        model.addAttribute("ROLE_ADMIN", ROLE_ADMIN);
+        model.addAttribute("ROLE_LIBRARIAN", ROLE_LIBRARIAN);
+        model.addAttribute("ROLE_READER", ROLE_READER);
+        model.addAttribute("ROLE_WORKER", ROLE_WORKER);
+        return "roles/_roles-tab2";
     }
 
-    @GetMapping("/create")
-    public String showCreateUserRoleForm(Model model) {
-        model.addAttribute("createdUserRole", new UserRole());
-        return "roles/role-create";
-    }
-
-    @PostMapping("/create")
-    public String validateUserRole(@Valid @ModelAttribute("createdUserRole") UserRole userRole, BindingResult result, RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            // Handle validation errors
-            ValidationExceptionHandler.handleValidationErrors(result);
-            return "roles/role-create";
+    @PostMapping("/roles-tab2")
+    public String validateAndSaveUserRole(@RequestParam String roleName, RedirectAttributes redirectAttributes) {
+        // Check if a role is already in use
+        if (userRoleService.existsByRoleName(roleName)) {
+            redirectAttributes.addAttribute("errorMessage", "A role with that name already exists!");
+            return "redirect:" + ADMIN_HOME_URL + "roles?error";
         }
 
-        // Process and save the role
-        return createUserRole(userRole, redirectAttributes);
-    }
-
-    public String createUserRole(@ModelAttribute UserRole userRole, RedirectAttributes redirectAttributes) {
         try {
             // Create role
-            userRoleService.createRole(userRole);
-            redirectAttributes.addFlashAttribute("successMessage", "Role '" + userRole.getRoleName() + "' successfully created.");
-            return "redirect:/library/roles/success";
-        } catch (UserRoleAlreadyExistsException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/library/roles/error";
+            userRoleService.createRole(new UserRole(roleName, RoleUtilsForDescription.getRoleDescription(roleName)));
+            redirectAttributes.addAttribute("successMessage", "Role '" + roleName + "' successfully created.");
+            return "redirect:" + ADMIN_HOME_URL + "roles?success";
+        } catch (Exception ex) {
+            redirectAttributes.addAttribute("errorMessage", ex.getMessage());
+            return "redirect:" + ADMIN_HOME_URL + "roles?error";
         }
     }
 
-    @GetMapping("/list/{id}/edit")
-    public String showEditUserRoleForm(@PathVariable Long id, Model model) {
-        UserRole userRole = userRoleService.getRoleById(id).orElse(null);
-        model.addAttribute("updatedRole", userRole);
-        return "roles/role-edit";
-    }
-
-    @PostMapping("/list/{id}/edit")
-    public String editUserRole(@PathVariable Long id, @Valid @ModelAttribute("updatedRole") UserRole updatedRole, BindingResult result, RedirectAttributes redirectAttributes) {
-        // Check for validation errors
-        if (result.hasErrors()) {
-            ValidationExceptionHandler.handleValidationErrors(result);
-            return "roles/role-edit";
-        }
-
-        if (id != null) {
-            try {
-                // Update role details.
-                userRoleService.updateRole(id, updatedRole);
-                redirectAttributes.addAttribute("successMessage", "Role '" + updatedRole.getRoleName() + "' successfully updated.");
-                return "redirect:/library/roles/success";
-            } catch (UserRoleAlreadyExistsException ex) {
-                redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-                return "redirect:/library/roles/error";
-            } catch (AdminDeletionException ex) {
-                redirectAttributes.addAttribute("errorMessage", ex.getMessage());
-                return "redirect:/library/roles/error";
-            }
-        } else {
-            throw new UserRoleNotFoundException("UserRole not found");
-        }
-    }
-
-    @GetMapping("/list/{id}/delete")
+    @GetMapping("/roles/{id}/delete")
     public String deleteUserRole(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             // Retrieve the role by ID.
@@ -149,120 +122,101 @@ public class UserRoleController {
                 userRoleService.deleteRole(id);
 
                 redirectAttributes.addAttribute("successMessage", "Role '" + roleNameD + "' successfully deleted.");
-                return "redirect:/library/roles/success";
+                return "redirect:" + ADMIN_HOME_URL + "roles?success";
             } else {
-                // If the userRole is not found, throw UserRoleNotFoundException
-                throw new UserRoleNotFoundException("UserRole not found");
+                redirectAttributes.addAttribute("errorMessage", "Error deleting user!");
+                return "redirect:" + ADMIN_HOME_URL + "roles?error";
             }
         } catch (AdminDeletionException ex) {
             redirectAttributes.addAttribute("errorMessage", ex.getMessage());
-            return "redirect:/library/roles/error";
+            return "redirect:" + ADMIN_HOME_URL + "roles?error";
         }
     }
 
-    @GetMapping("/assign")
+    @GetMapping("/roles-tab3")
     public String showAssignRoleForm(Model model) {
         List<User> usersWithoutRole = userService.getUsersWithoutRoleId();
         int usersWithoutRoleCount = usersWithoutRole.size();
         List<UserRole> allRoles = userRoleService.getAllRolesWithoutAdmin();
 
+        model.addAttribute("ADMIN_HOME_URL", ADMIN_HOME_URL);
+        model.addAttribute("tab", "tab3");
         model.addAttribute("usersWithoutRole", usersWithoutRole);
         model.addAttribute("usersWithoutRoleCount", usersWithoutRoleCount);
         model.addAttribute("allRoles", allRoles);
         model.addAttribute("selectedRoleId", null);
-        return "roles/role-assign";
+        return "roles/_roles-tab3";
     }
 
-    @PostMapping(value = "/assign/all")
-    public String assignRoleToAll(@RequestParam(name = "selectedRoleId", required = false) Long selectedRoleId, Model model) {
+    @PostMapping(value = "roles/assign/all")
+    public String assignRoleToAll(@RequestParam(name = "selectedRoleId", required = false) Long selectedRoleId, RedirectAttributes redirectAttributes) {
         Optional<UserRole> existingRoleOptional = userRoleService.getRoleById(selectedRoleId);
         if (existingRoleOptional.isPresent()) {
             UserRole selectedRole = existingRoleOptional.get();
 
             // Assign the selected role to all users
             userRoleService.assignRoleToAll(selectedRoleId);
-            model.addAttribute("successMessage", "Users have been successfully assigned role '" + selectedRole.getRoleName() + "'");
-            return "roles/success-page";
+            redirectAttributes.addAttribute("successMessage", "Users have been successfully assigned role '" + selectedRole.getRoleName() + "'");
+            return "redirect:" + ADMIN_HOME_URL + "roles?success";
         } else {
-            model.addAttribute("errorMessage", "Role not found");
-            return "roles/error-page";
+            redirectAttributes.addAttribute("errorMessage", "Role not found");
+            return "redirect:" + ADMIN_HOME_URL + "roles?error";
         }
     }
 
-    @PostMapping(value = "/assign")
-    public String assignRoleToUser(@RequestParam("userId") Long userId, @RequestParam("roleId") Long roleId, Model model) {
+    @PostMapping(value = "/roles-tab3")
+    public String assignRoleToUser(@RequestParam("userId") Long userId, @RequestParam("roleId") Long roleId, RedirectAttributes redirectAttributes, Model model) {
         try {
             // Assign the role to the user
             userRoleService.assignRoleToUser(roleId, userId);
         } catch (UserRoleNotFoundException | UserNotFoundException ex) {
-            model.addAttribute("errorMessage", ex.getMessage());
-            return "roles/error-page";
+            redirectAttributes.addAttribute("errorMessage", ex.getMessage());
+            return "redirect:" + ADMIN_HOME_URL + "roles?error";
         }
         // Redirect to the same page
-        return "redirect:/library/roles/assign";
+        model.addAttribute("tab", "tab3");
+        return "redirect:" + ADMIN_HOME_URL + "roles-tab3";
     }
 
-    @GetMapping("list/users/{id}/edit")
-    public String showEditUserForm(@PathVariable Long id, Model model) {
-        // Retrieve the user and roles for the given ID.
-        User editedUser = userService.getUserById(id).orElse(null);
-        List<UserRole> roles = userRoleService.getAllRolesWithoutAdmin();
+    @GetMapping("/roles/{roleId}/users")
+    public String viewUsersByRole(@PathVariable Long roleId, Model model) {
+        // Retrieve the list of users associated with the specified role ID
+        List<User> users = userService.getListUsersByRoleId(roleId);
+        // Retrieve the total number of users for the specified role ID
+        int totalUsers = userService.getTotalUsersByRoleId(roleId);
+        // Retrieve the role name for the specified role ID
+        String roleName = userRoleService.getRoleNameById(roleId);
 
-        model.addAttribute("editedUser", editedUser);
-        model.addAttribute("roles", roles);
-        return "roles/user-edit";
+        model.addAttribute("ADMIN_HOME_URL", ADMIN_HOME_URL);
+        model.addAttribute("roleId", roleId);
+        model.addAttribute("roleName", roleName);
+        model.addAttribute("totalUsers", totalUsers);
+        model.addAttribute("users", users);
+
+        // Return the logical view name for rendering the page displaying users for the given role
+        return "roles/role-users";
     }
 
-    @PostMapping("list/users/{id}/edit")
-    public String editUser(@PathVariable Long id, @Valid @ModelAttribute("editedUser") User editedUser,
-                           BindingResult result, RedirectAttributes redirectAttributes) {
-        // Check for validation errors
-        if (result.hasErrors()) {
-            // Handle validation errors
-            ValidationExceptionHandler.handleValidationErrors(result);
-            return "roles/user-edit";
-        }
+    @GetMapping("/roles/{roleId}/users/{id}/delete")
+    public String deleteUser(@PathVariable Long id, @PathVariable Long roleId, RedirectAttributes redirectAttributes) {
 
-        if (id != null) {
-            try {
-                // Update user details.
-                userService.updateUser(id, editedUser);
-                redirectAttributes.addAttribute("successMessage", "User '" + editedUser.getFirstName() + ' ' + editedUser.getLastName() + "' successfully updated.");
-                return "redirect:/library/roles/success";
-            } catch (UserAlreadyExistsException ex) {
-                redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-                return "redirect:/library/roles/error";
-            }
+        // Retrieve the user by ID.
+        Optional<User> userOptional = userService.getUserById(id);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            String firstNameD = user.getFirstName();
+            String lastNameD = user.getLastName();
+            userService.deleteAdmin(id);
+
+            redirectAttributes.addAttribute("successMessage", "User '" + firstNameD + ' ' + lastNameD + "' successfully deleted.");
+            //return "redirect:" + ADMIN_HOME_URL + "roles?success";
+            return "redirect:" + ADMIN_HOME_URL + "roles/" + roleId + "/users?success";
         } else {
-            throw new UserNotFoundException("User not found");
+            redirectAttributes.addAttribute("errorMessage", "Error deleting");
+            return "redirect:" + ADMIN_HOME_URL + "roles/" + roleId + "/users?error";
         }
+
     }
 
-    @GetMapping("/success")
-    public String successPage(@ModelAttribute("successMessage") String successMessage, Model model) {
-        model.addAttribute("message", successMessage);
-        return "roles/success-page";
-    }
-
-    @ExceptionHandler(UserRoleNotFoundException.class)
-    public String handleUserRoleNotFoundException(UserRoleNotFoundException ex, Model model) {
-        model.addAttribute("errorMessage", ex.getMessage());
-        return "redirect:/library/users/error";
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public String handleUserNotFoundException(UserNotFoundException ex, Model model) {
-        model.addAttribute("errorMessage", ex.getMessage());
-        return "redirect:/library/users/error";
-    }
-
-    @GetMapping("/error")
-    public String errorPage(@ModelAttribute("errorMessage") String errorMessage, Model model) {
-        if (errorMessage.isEmpty()) {
-            errorMessage = "Oops! Something went wrong.";
-        }
-        model.addAttribute("errorMessage", errorMessage);
-        return "roles/error-page";
-    }
 
 }

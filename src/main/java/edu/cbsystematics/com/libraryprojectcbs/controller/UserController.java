@@ -1,14 +1,11 @@
 package edu.cbsystematics.com.libraryprojectcbs.controller;
 
-import edu.cbsystematics.com.libraryprojectcbs.config.PaginationConstants;
 import edu.cbsystematics.com.libraryprojectcbs.exception.*;
 import edu.cbsystematics.com.libraryprojectcbs.models.User;
-import edu.cbsystematics.com.libraryprojectcbs.models.UserRole;
 import edu.cbsystematics.com.libraryprojectcbs.service.UserRoleService;
 import edu.cbsystematics.com.libraryprojectcbs.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -17,19 +14,16 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.*;
 
-import static edu.cbsystematics.com.libraryprojectcbs.LibraryProjectCbsApplication.ROLE_READER;
 
 @Controller
 @RequestMapping("/library/users")
 public class UserController {
 
     private final UserService userService;
-    private final UserRoleService userRoleService;
 
     @Autowired
-    public UserController(UserService userService, UserRoleService userRoleService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.userRoleService = userRoleService;
     }
 
     @GetMapping("/list")
@@ -49,7 +43,7 @@ public class UserController {
             model.addAttribute("user", user);
             return "users/user-details";
         } else {
-            throw new UserNotFoundException("User not found for ID: " + id);
+            throw new ResourceNotFoundException("User not found for ID: " + id);
         }
     }
 
@@ -62,7 +56,8 @@ public class UserController {
 
     // Process the user form data
     @PostMapping("/create")
-    public String processUserForm(@Valid @ModelAttribute("createdUser") User user, BindingResult result, RedirectAttributes redirectAttributes) {
+    public String processUserForm(@Valid @ModelAttribute("createdUser") User user,
+                                  BindingResult result, RedirectAttributes redirectAttributes) {
         // Check for validation errors
         if (result.hasErrors()) {
             ValidationExceptionHandler.handleValidationErrors(result);
@@ -81,11 +76,11 @@ public class UserController {
             return "redirect:/library/users/success";
         } catch (UserRoleNotFoundException e) {
             // Handle exception when the user role is not found
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            redirectAttributes.addAttribute("errorMessage", e.getMessage());
             return "redirect:/library/users/error";
         } catch (UserAlreadyExistsException ex) {
             // Handle exception when the user already exists
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            redirectAttributes.addAttribute("errorMessage", ex.getMessage());
             return "redirect:/library/users/error";
         }
     }
@@ -109,15 +104,15 @@ public class UserController {
         if (id != null) {
             try {
                 // Update user details.
-                userService.partialEdit(id, updatedReader.getFirstName(), updatedReader.getLastName(), updatedReader.getBirthDate(), updatedReader.getPhone(), updatedReader.getEmail(), updatedReader.getPassword());
+                userService.partialUpdateUser(id, updatedReader.getFirstName(), updatedReader.getLastName(), updatedReader.getBirthDate(), updatedReader.getPhone(), updatedReader.getEmail(), updatedReader.getPassword());
                 redirectAttributes.addAttribute("successMessage", "Reader '" + updatedReader.getFirstName() + ' ' + updatedReader.getLastName() + "' successfully updated.");
                 return "redirect:/library/users/success";
             } catch (UserAlreadyExistsException ex) {
-                redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+                redirectAttributes.addAttribute("errorMessage", ex.getMessage());
                 return "redirect:/library/users/error";
             }
         } else {
-            throw new UserNotFoundException("User not found");
+            throw new ResourceNotFoundException("User not found");
         }
     }
 
@@ -136,42 +131,12 @@ public class UserController {
                 redirectAttributes.addAttribute("successMessage", "User '" + firstNameD + ' ' + LastNameD + "' successfully deleted.");
                 return "redirect:/library/users/success";
             } else {
-                throw new UserNotFoundException("User not found for ID: " + id);
+                throw new ResourceNotFoundException("User not found for ID: " + id);
             }
         } catch (AdminDeletionException ex) {
             redirectAttributes.addAttribute("errorMessage", ex.getMessage());
             return "redirect:/library/users/error";
         }
-    }
-
-    // display list of users
-    @GetMapping("/")
-    public String viewHomePage(Model model) {
-
-        return pagination(PaginationConstants.DEFAULT_PAGE_Number, PaginationConstants.DEFAULT_FIELD, PaginationConstants.DEFAULT_SORT_DIRECTION, model);
-    }
-
-    @GetMapping("/page/{pageNumber}")
-    public String pagination(@PathVariable (value = "pageNumber", required = false) int pageNumber,
-                             @RequestParam(value = "sortField", required = false) String sortField,
-                             @RequestParam(value = "sortDirection", required = false) String sortDirection,
-                             Model model) {
-
-        int pageSize = PaginationConstants.DEFAULT_PAGE_SIZE;
-
-        Page<User> page = userService.pagination(pageNumber, pageSize, sortField, sortDirection);
-        List<User> listUsers = page.getContent();
-
-        model.addAttribute("currentPage", pageNumber);
-        model.addAttribute("totalPages", page.getTotalPages());
-        model.addAttribute("totalItems", page.getTotalElements());
-
-        model.addAttribute("sortField", sortField);
-        model.addAttribute("sortDirection", sortDirection);
-        model.addAttribute("reverseSortDirection", sortDirection.equals("ASC") ? "DESC" : "ASC");
-
-        model.addAttribute("listUsers", listUsers);
-        return "users/index";
     }
 
     @GetMapping("/search-user")
@@ -194,24 +159,7 @@ public class UserController {
         return "users/search-results";
     }
 
-    @GetMapping("/success")
-    public String successPage(@ModelAttribute("successMessage") String successMessage, Model model) {
-        // Find the role associated with readers
-        Optional<UserRole> readerRole = userRoleService.findRoleByName(ROLE_READER);
-        if (readerRole.isPresent()) {
-            UserRole userRole = readerRole.get();
-            // Retrieve total records associated with the reader role
-            int totalRecords = userService.getTotalUsersByRoleId(userRole.getId());
-            // Construct a message about the total number of readers
-            String totalRecordsMessage = "SMART-library has " + totalRecords + " registered readers.";
 
-            model.addAttribute("totalRecordsMessage", totalRecordsMessage);
-            model.addAttribute("successMessage", successMessage);
-            return "users/success-page";
-        } else {
-            throw new UserRoleNotFoundException("UserRole not found");
-        }
-    }
 
     @ExceptionHandler(UserNotFoundException.class)
     public String handleUserNotFoundException(UserNotFoundException ex, Model model) {

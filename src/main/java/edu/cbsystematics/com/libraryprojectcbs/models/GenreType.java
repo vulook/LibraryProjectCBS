@@ -1,6 +1,6 @@
 package edu.cbsystematics.com.libraryprojectcbs.models;
 
-public enum Genre {
+public enum GenreType {
 
  BIOGRAPHY,
  FANTASY,

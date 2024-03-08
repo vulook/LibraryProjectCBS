@@ -1,15 +1,17 @@
 package edu.cbsystematics.com.libraryprojectcbs.models;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @Table(name = "books")
 public class Book {
@@ -24,7 +26,7 @@ public class Book {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "genre")
-    private Genre genre;
+    private GenreType genreType;
 
     @Column(name = "page_count", nullable = false)
     private int pageCount;
@@ -32,8 +34,9 @@ public class Book {
     @Column(name = "book_amount", nullable = false)
     private int bookAmount;
 
-    @Column(name = "ratings")
-    private Double ratings;
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
@@ -49,12 +52,32 @@ public class Book {
     @OneToMany(mappedBy = "book")
     private List<Form> forms;
 
-    public Book(String bookName, Genre genre, int pageCount, int bookAmount, Double ratings) {
+    public Book(String bookName, GenreType genreType, int pageCount, int bookAmount, LocalDateTime createdAt) {
         this.bookName = bookName;
-        this.genre = genre;
+        this.genreType = genreType;
         this.pageCount = pageCount;
         this.bookAmount = bookAmount;
-        this.ratings = ratings;
+        this.createdAt = createdAt;
+    }
+
+    public Book(String bookName, GenreType genreType, int pageCount, int bookAmount) {
+        this.bookName = bookName;
+        this.genreType = genreType;
+        this.pageCount = pageCount;
+        this.bookAmount = bookAmount;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @Override
+    public String toString() {
+        return "Book{" +
+                "id=" + id +
+                ", bookName='" + bookName + '\'' +
+                ", genreType=" + genreType +
+                ", pageCount=" + pageCount +
+                ", bookAmount=" + bookAmount +
+                ", createdAt=" + createdAt +
+                '}';
     }
 
     @Override

@@ -1,4 +1,4 @@
-package edu.cbsystematics.com.libraryprojectcbs.config.dateValidator;
+package edu.cbsystematics.com.libraryprojectcbs.utils.validdate;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

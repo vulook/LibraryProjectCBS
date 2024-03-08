@@ -1,6 +1,7 @@
 package edu.cbsystematics.com.libraryprojectcbs.service;
 
 import edu.cbsystematics.com.libraryprojectcbs.models.Form;
+import edu.cbsystematics.com.libraryprojectcbs.models.User;
 import edu.cbsystematics.com.libraryprojectcbs.repository.FormRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,13 +26,18 @@ public class FormServiceImpl implements FormService {
         // Calculate returnDate based on startDate
         LocalDate calculatedReturnDate = form.calculateReturnDate();
         form.setReturnDate(calculatedReturnDate);
+
+        // Update userBooksTakenCount
+        List<Form> userForms = formRepository.findByUser(form.getUser());
+        form.calculateUserBooksTakenCount(userForms);
+
         formRepository.save(form);
     }
 
     @Override
     @Transactional
     public void updateForm(Long id, Form updatedForm) {
-        formRepository.updateForm(id, updatedForm.getStartDate(), updatedForm.getReturnDate(), updatedForm.getBookReturned(), updatedForm.getUser(), updatedForm.getBook());
+        formRepository.updateForm(id, updatedForm.getStartDate());
     }
 
     @Override
@@ -47,6 +53,11 @@ public class FormServiceImpl implements FormService {
     @Override
     public List<Form> getAllForms() {
         return formRepository.findAll();
+    }
+
+    @Override
+    public List<Form> getFormsByUser(User currentReader) {
+        return formRepository.findByUser(currentReader);
     }
 
 }

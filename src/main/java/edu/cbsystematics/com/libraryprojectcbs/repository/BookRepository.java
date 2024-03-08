@@ -1,7 +1,7 @@
 package edu.cbsystematics.com.libraryprojectcbs.repository;
 
 import edu.cbsystematics.com.libraryprojectcbs.models.Book;
-import edu.cbsystematics.com.libraryprojectcbs.models.Genre;
+import edu.cbsystematics.com.libraryprojectcbs.models.GenreType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,14 +17,13 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     // Update Book Information
     @Modifying
     @Transactional
-    @Query("UPDATE Book b SET b.bookName = :bookName, b.genre = :genre, b.pageCount = :pageCount, b.bookAmount = :bookAmount, b.ratings = :ratings WHERE b.id = :id")
+    @Query("UPDATE Book b SET b.bookName = :bookName, b.genreType = :genreType, b.pageCount = :pageCount, b.bookAmount = :bookAmount WHERE b.id = :id")
     void updateBook(
-            @Param("id") Long id,
+            Long id,
             @Param("bookName") String bookName,
-            @Param("genre") Genre genre,
+            @Param("genreType") GenreType genreType,
             @Param("pageCount") int pageCount,
-            @Param("bookAmount") int bookAmount,
-            @Param("ratings") Double ratings
+            @Param("bookAmount") int bookAmount
     );
 
     // Search Book Name

@@ -1,4 +1,4 @@
-package edu.cbsystematics.com.libraryprojectcbs.config.fieldMatchValidator;
+package edu.cbsystematics.com.libraryprojectcbs.utils.validmatch;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

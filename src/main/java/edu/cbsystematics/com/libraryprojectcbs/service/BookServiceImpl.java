@@ -35,7 +35,7 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public void updateBook(Long id, Book updatedBook) {
-        bookRepository.updateBook(id, updatedBook.getBookName(), updatedBook.getGenre(), updatedBook.getPageCount(), updatedBook.getBookAmount(), updatedBook.getRatings());
+        bookRepository.updateBook(id, updatedBook.getBookName(), updatedBook.getGenreType(), updatedBook.getPageCount(), updatedBook.getBookAmount());
     }
 
     @Override

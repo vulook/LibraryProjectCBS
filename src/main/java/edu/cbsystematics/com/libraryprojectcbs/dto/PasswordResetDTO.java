@@ -1,6 +1,6 @@
 package edu.cbsystematics.com.libraryprojectcbs.dto;
 
-import edu.cbsystematics.com.libraryprojectcbs.config.fieldMatchValidator.FieldMatch;
+import edu.cbsystematics.com.libraryprojectcbs.utils.validmatch.FieldMatch;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;

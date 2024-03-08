@@ -1,17 +1,17 @@
 package edu.cbsystematics.com.libraryprojectcbs.models;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-
 @Entity
-@Data
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 @Table(name = "logs")
 public class Logs {
@@ -31,13 +31,13 @@ public class Logs {
     private String role;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type")
+    @Column(name = "type_action")
     private ActionType action;
 
     @Column(name = "method", columnDefinition = "varchar(100)")
     private String method;
 
-    @Column(name = "parameters", columnDefinition = "varchar(250)")
+    @Column(name = "parameters", columnDefinition = "TEXT(1000)")
     private String parameters;
 
     @Column(name = "time", columnDefinition = "BIGINT")

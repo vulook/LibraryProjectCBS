@@ -1,12 +1,15 @@
 package edu.cbsystematics.com.libraryprojectcbs.dto;
 
 import edu.cbsystematics.com.libraryprojectcbs.models.User;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserMapper {
 
     // Convert User JPA Entity into UserDTO
-    public static UserDTO mapToUserDto(User user) {
+    public static UserDTO toDTO(User user) {
         return new UserDTO(
                 user.getId(),
                 user.getFirstName(),
@@ -18,9 +21,8 @@ public class UserMapper {
         );
     }
 
-
     // Convert UserDTO into User JPA Entity
-    public static User mapToUser(UserDTO userDTO) {
+    public static User toEntity(UserDTO userDTO) {
         return new User(
                 userDTO.getFirstName(),
                 userDTO.getLastName(),

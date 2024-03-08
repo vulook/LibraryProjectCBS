@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDate;
+import java.util.List;
+
+import static edu.cbsystematics.com.libraryprojectcbs.LibraryProjectCbsApplication.READING_PERIOD;
 
 
 @Entity
@@ -17,8 +20,11 @@ public class Form {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    @Column(name = "id")
-    private long id;
+    @Column(name = "id", nullable = false, columnDefinition = "BIGINT")
+    private Long id;
+
+    @Column(name = "user_books_taken_count", nullable = false, columnDefinition = "BIGINT")
+    private Integer userBooksTakenCount;
 
     @Column(name = "start_date")
     private LocalDate startDate;
@@ -44,11 +50,22 @@ public class Form {
         this.book = book;
     }
 
+    public Form(User user, Book book) {
+        this.startDate = LocalDate.now();
+        this.user = user;
+        this.book = book;
+    }
+
+    // Calculate the number of books taken by the user based on the list of Form objects.
+    public void calculateUserBooksTakenCount(List<Form> userForms) {
+        this.userBooksTakenCount = userForms.isEmpty() ? 1 : userForms.size() + 1;
+    }
+
     // Calculate the return date based on the start date
-    // Assuming a reading period of 3 weeks (30 days)
+    // Assuming a 30-day reading period.
     public LocalDate calculateReturnDate() {
         if (this.startDate != null) {
-            return this.startDate.plusDays(30);
+            return this.startDate.plusDays(READING_PERIOD);
         } else {
             throw new IllegalArgumentException("Please enter a start date for borrowing the book.");
         }

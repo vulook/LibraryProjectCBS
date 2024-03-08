@@ -1,4 +1,4 @@
-package edu.cbsystematics.com.libraryprojectcbs.config.aspect;
+package edu.cbsystematics.com.libraryprojectcbs.aop;
 
 import edu.cbsystematics.com.libraryprojectcbs.models.ActionType;
 

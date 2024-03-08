@@ -1,10 +1,10 @@
 package edu.cbsystematics.com.libraryprojectcbs.controller;
 
 import edu.cbsystematics.com.libraryprojectcbs.dto.UserRegistrationDTO;
+import edu.cbsystematics.com.libraryprojectcbs.exception.ValidationExceptionHandler;
+import edu.cbsystematics.com.libraryprojectcbs.models.User;
 import edu.cbsystematics.com.libraryprojectcbs.service.UserService;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,8 +17,6 @@ import static edu.cbsystematics.com.libraryprojectcbs.LibraryProjectCbsApplicati
 @Controller
 @RequestMapping("/registration")
 public class UserRegistrationController {
-
-    private static final Logger logger = LoggerFactory.getLogger(UserRegistrationController.class);
 
     private final UserService userService;
 
@@ -42,14 +40,14 @@ public class UserRegistrationController {
     public String registerNewUser(@ModelAttribute("user") @Valid UserRegistrationDTO userRegistrationDTO,
                                   BindingResult result) {
 
-        // Check if the user with the given email already exists
-        if (userAlreadyExists(userRegistrationDTO.getEmail())) {
-            result.rejectValue("email", null, "There is already an account registered with that email");
+        // Check if email is already in use
+        if (emailExist(userRegistrationDTO.getEmail())) {
+            result.rejectValue("email", "user.exist", "There is already an account registered with that email");
         }
 
         // If there are validation errors, return to the registration page
         if (result.hasErrors()) {
-            logger.error("Validation errors: {}", result);
+            ValidationExceptionHandler.handleValidationErrors(result);
             return "logging/registration";
         }
 
@@ -58,8 +56,14 @@ public class UserRegistrationController {
         return "redirect:/registration?success";
     }
 
-    private boolean userAlreadyExists(String email) {
-        return userService.findByEmail(email) != null;
+
+
+
+
+    private boolean emailExist(String email) {
+        final User user = userService.findByEmail(email);
+        return user != null;
     }
+
 
 }

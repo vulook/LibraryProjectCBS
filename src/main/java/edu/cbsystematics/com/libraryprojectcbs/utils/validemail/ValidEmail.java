@@ -1,4 +1,4 @@
-package edu.cbsystematics.com.libraryprojectcbs.config.emailValidator;
+package edu.cbsystematics.com.libraryprojectcbs.utils.validemail;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

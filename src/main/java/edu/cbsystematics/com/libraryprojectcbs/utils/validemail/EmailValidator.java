@@ -1,4 +1,4 @@
-package edu.cbsystematics.com.libraryprojectcbs.config.emailValidator;
+package edu.cbsystematics.com.libraryprojectcbs.utils.validemail;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -14,6 +14,7 @@ public class EmailValidator implements ConstraintValidator<ValidEmail, String> {
     // Initialization method called by the validation framework.
     @Override
     public void initialize(ValidEmail constraintAnnotation) {
+        // TODO document why this method is empty
     }
 
     // Method to check the validity of the provided email address.

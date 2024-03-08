@@ -1,8 +1,8 @@
 package edu.cbsystematics.com.libraryprojectcbs.dto;
 
-import edu.cbsystematics.com.libraryprojectcbs.config.emailValidator.ValidEmail;
-import edu.cbsystematics.com.libraryprojectcbs.config.fieldMatchValidator.FieldMatch;
-import edu.cbsystematics.com.libraryprojectcbs.config.dateValidator.AgeConstraint;
+import edu.cbsystematics.com.libraryprojectcbs.utils.validemail.ValidEmail;
+import edu.cbsystematics.com.libraryprojectcbs.utils.validmatch.FieldMatch;
+import edu.cbsystematics.com.libraryprojectcbs.utils.validdate.AgeConstraint;
 import jakarta.persistence.Column;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -61,7 +61,7 @@ public class UserRegistrationDTO {
     private String confirmEmail;
 
     @NotNull(message = "Password is required")
-    @Size(min = 8, max = 20, message = "Password should be between 8 and 20 characters")
+    @Size(min = 8, max = 50, message = "Password should be between 8 and 20 characters")
     @Pattern.List({
             @Pattern(regexp = ".*[0-9].*", message = "Password should contain at least one digit"),
             @Pattern(regexp = ".*[a-z].*", message = "Password should contain at least one lowercase letter"),

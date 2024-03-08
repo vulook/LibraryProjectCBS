@@ -1,24 +1,18 @@
 package edu.cbsystematics.com.libraryprojectcbs.dto;
 
-import edu.cbsystematics.com.libraryprojectcbs.config.emailValidator.ValidEmail;
-import edu.cbsystematics.com.libraryprojectcbs.config.dateValidator.AgeConstraint;
-import jakarta.persistence.Column;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import edu.cbsystematics.com.libraryprojectcbs.utils.validemail.ValidEmail;
+import edu.cbsystematics.com.libraryprojectcbs.utils.validdate.AgeConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
 
-@Setter
-@Getter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDTO {
@@ -34,7 +28,6 @@ public class UserDTO {
             @Pattern(regexp = "^((?!  ).)*$", message = "First Name should not contain consecutive spaces"),
             @Pattern(regexp = "^[^a-z].*$", message = "First Name should not start with a lowercase character")
     })
-    @Column(name = "first_name", nullable = false, columnDefinition = "varchar(50)")
     private String firstName;
 
     @NotNull(message = "Last Name is required")
@@ -49,8 +42,8 @@ public class UserDTO {
     private String lastName;
 
     @NotNull(message = "Birth Date is required")
+    @DateTimeFormat(pattern = "dd-MM-yyyy")
     @AgeConstraint
-    @Temporal(TemporalType.DATE)
     private LocalDate birthDate;
 
     @NotNull(message = "Phone is required")
@@ -63,7 +56,7 @@ public class UserDTO {
     @ValidEmail
     private String email;
 
-    @Size(min = 8, max = 20, message = "Password should be between 8 and 20 characters")
+    @Size(min = 8, max = 70, message = "Password should be between 8 and 20 characters")
     @Pattern.List({
             @Pattern(regexp = ".*[0-9].*", message = "Password should contain at least one digit"),
             @Pattern(regexp = ".*[a-z].*", message = "Password should contain at least one lowercase letter"),

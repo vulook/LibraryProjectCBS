@@ -59,7 +59,7 @@ public class AuthorController {
 
     public String createAuthor(@ModelAttribute Author author, RedirectAttributes redirectAttributes) {
             authorService.createAuthor(author);
-            redirectAttributes.addFlashAttribute("successMessage", "Author '" + author.getFirstName() + " " + author.getLastName() + "' successfully created.");
+            redirectAttributes.addAttribute("successMessage", "Author '" + author.getFirstName() + " " + author.getLastName() + "' successfully created.");
             return "redirect:/library/authors/success";
 
     }
@@ -91,7 +91,7 @@ public class AuthorController {
                 redirectAttributes.addAttribute("successMessage", "Author '" + author.getFirstName() + " " + author.getLastName() + "' successfully updated.");
                 return "redirect:/library/authors/success";
             } catch (AuthorAlreadyExistsException ex) {
-                redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+                redirectAttributes.addAttribute("errorMessage", ex.getMessage());
                 return "redirect:/library/authors/error";
             }
         } else {

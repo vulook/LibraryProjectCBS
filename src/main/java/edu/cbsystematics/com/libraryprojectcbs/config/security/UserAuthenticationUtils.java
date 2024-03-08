@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 @Component
 public class UserAuthenticationUtils {
 
-    // Retrieves the username of the current authenticated user from the given Authentication object.
-    public String getCurrentUserUsername(Authentication authentication) {
+    // Retrieves the username of the current authenticated user from the Authentication object.
+    public final String getCurrentUsername(Authentication authentication) {
         return Optional.ofNullable(authentication)
                 .map(Authentication::getPrincipal)
                 .filter(UserDetails.class::isInstance)
@@ -22,9 +22,8 @@ public class UserAuthenticationUtils {
                 .orElse(null);
     }
 
-
-    // Retrieves the role of the current authenticated user from the given Authentication object.
-    public String getCurrentUserRoles(Authentication authentication) {
+    // Retrieves the role of the current authenticated user from the Authentication object.
+    public final String getCurrentUserRoles(Authentication authentication) {
         return Optional.ofNullable(authentication)
                 .map(Authentication::getAuthorities)
                 .map(authorities -> authorities.stream()
@@ -32,6 +31,5 @@ public class UserAuthenticationUtils {
                         .collect(Collectors.joining("")))
                 .orElse(null);
     }
-
 
 }

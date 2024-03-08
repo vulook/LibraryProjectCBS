@@ -29,4 +29,7 @@ public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
     // Check if a UserRole with the given roleName exists. Returns true if a match is found
     boolean existsByRoleName(String roleName);
 
+    // Find a role by its name in the Role entity.
+    UserRole findByRoleName(String roleName);
+
 }

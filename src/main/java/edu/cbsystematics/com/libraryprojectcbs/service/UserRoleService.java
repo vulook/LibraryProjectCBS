@@ -2,10 +2,14 @@ package edu.cbsystematics.com.libraryprojectcbs.service;
 
 import edu.cbsystematics.com.libraryprojectcbs.models.User;
 import edu.cbsystematics.com.libraryprojectcbs.models.UserRole;
+
 import java.util.List;
 import java.util.Optional;
 
 public interface UserRoleService {
+
+    // Create a new user role
+    void createRoleDatabaseInit(UserRole userRole);
 
     // Create a new user role.
     void createRole(UserRole userRole);
@@ -32,7 +36,9 @@ public interface UserRoleService {
     List<UserRole> getAllRolesWithoutAdmin();
 
     // Find userRole by name
-    Optional<UserRole> findRoleByName(String name);
+    UserRole findRoleByName(String name);
+
+    boolean existsByRoleName(String roleName);
 
     // Find role name by ID
     String getRoleNameById(Long roleId);
