@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class CountUsersFromTimePeriod {
+public class CountTimePeriod {
 
     private Long countUsersFromCurrentDate;
 

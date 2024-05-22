@@ -31,7 +31,7 @@ public class CustomLogoutLogger {
                 .map(Authentication::getPrincipal)
                 .filter(UserDetails.class::isInstance)
                 .map(UserDetails.class::cast)
-                .map(u -> userService.findByEmail(u.getUsername()))
+                .flatMap(u -> userService.findByEmail(u.getUsername()))
                 .ifPresent(user -> {
                     // Extract user information
                     String fullName = user.getFirstName() + " " + user.getLastName();

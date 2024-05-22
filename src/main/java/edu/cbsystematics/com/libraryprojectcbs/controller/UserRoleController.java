@@ -18,7 +18,7 @@ import java.util.*;
 import static edu.cbsystematics.com.libraryprojectcbs.LibraryProjectCbsApplication.*;
 
 @Controller
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('ROLE_ADMIN')")
 @RequestMapping(ADMIN_HOME_URL)
 public class UserRoleController {
 
@@ -41,7 +41,7 @@ public class UserRoleController {
 
     @GetMapping("/roles-{tab}")
     public String tab(@PathVariable String tab) {
-        if (Arrays.asList("tab1", "tab2", "tab3")
+        if (Arrays.asList("tab1", "tab2")
                 .contains(tab)) {
             return "roles/_roles-" + tab;
         }
@@ -133,22 +133,21 @@ public class UserRoleController {
         }
     }
 
-    @GetMapping("/roles-tab3")
+    @GetMapping("/roles/assign")
     public String showAssignRoleForm(Model model) {
         List<User> usersWithoutRole = userService.getUsersWithoutRoleId();
         int usersWithoutRoleCount = usersWithoutRole.size();
         List<UserRole> allRoles = userRoleService.getAllRolesWithoutAdmin();
 
         model.addAttribute("ADMIN_HOME_URL", ADMIN_HOME_URL);
-        model.addAttribute("tab", "tab3");
         model.addAttribute("usersWithoutRole", usersWithoutRole);
         model.addAttribute("usersWithoutRoleCount", usersWithoutRoleCount);
         model.addAttribute("allRoles", allRoles);
-        model.addAttribute("selectedRoleId", null);
-        return "roles/_roles-tab3";
+        model.addAttribute("selectedRoleId", null);  // default value
+        return "roles/role-assign";
     }
 
-    @PostMapping(value = "roles/assign/all")
+    @PostMapping(value = "/roles/assign/all")
     public String assignRoleToAll(@RequestParam(name = "selectedRoleId", required = false) Long selectedRoleId, RedirectAttributes redirectAttributes) {
         Optional<UserRole> existingRoleOptional = userRoleService.getRoleById(selectedRoleId);
         if (existingRoleOptional.isPresent()) {
@@ -164,8 +163,9 @@ public class UserRoleController {
         }
     }
 
-    @PostMapping(value = "/roles-tab3")
-    public String assignRoleToUser(@RequestParam("userId") Long userId, @RequestParam("roleId") Long roleId, RedirectAttributes redirectAttributes, Model model) {
+    @PostMapping(value = "/roles/assign")
+    public String assignRoleToUser(@RequestParam(name = "roleId", required = false) Long roleId, @RequestParam(name = "userId", required = false) Long userId, RedirectAttributes redirectAttributes) {
+
         try {
             // Assign the role to the user
             userRoleService.assignRoleToUser(roleId, userId);
@@ -173,9 +173,9 @@ public class UserRoleController {
             redirectAttributes.addAttribute("errorMessage", ex.getMessage());
             return "redirect:" + ADMIN_HOME_URL + "roles?error";
         }
+
         // Redirect to the same page
-        model.addAttribute("tab", "tab3");
-        return "redirect:" + ADMIN_HOME_URL + "roles-tab3";
+        return "redirect:" + ADMIN_HOME_URL + "roles/assign";
     }
 
     @GetMapping("/roles/{roleId}/users")
@@ -209,7 +209,6 @@ public class UserRoleController {
             userService.deleteAdmin(id);
 
             redirectAttributes.addAttribute("successMessage", "User '" + firstNameD + ' ' + lastNameD + "' successfully deleted.");
-            //return "redirect:" + ADMIN_HOME_URL + "roles?success";
             return "redirect:" + ADMIN_HOME_URL + "roles/" + roleId + "/users?success";
         } else {
             redirectAttributes.addAttribute("errorMessage", "Error deleting");

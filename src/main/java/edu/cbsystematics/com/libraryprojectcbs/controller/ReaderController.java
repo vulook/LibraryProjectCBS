@@ -1,20 +1,20 @@
 package edu.cbsystematics.com.libraryprojectcbs.controller;
 
 import edu.cbsystematics.com.libraryprojectcbs.config.security.UserAuthenticationUtils;
-import edu.cbsystematics.com.libraryprojectcbs.dto.UserDTO;
-import edu.cbsystematics.com.libraryprojectcbs.dto.UserMapper;
+import edu.cbsystematics.com.libraryprojectcbs.dto.user.UserDTO;
+import edu.cbsystematics.com.libraryprojectcbs.dto.user.UserMapper;
 import edu.cbsystematics.com.libraryprojectcbs.exception.ValidationExceptionHandler;
 import edu.cbsystematics.com.libraryprojectcbs.models.ActionType;
 import edu.cbsystematics.com.libraryprojectcbs.models.Logs;
 import edu.cbsystematics.com.libraryprojectcbs.models.User;
-import edu.cbsystematics.com.libraryprojectcbs.service.FormService;
-import edu.cbsystematics.com.libraryprojectcbs.service.LogsService;
-import edu.cbsystematics.com.libraryprojectcbs.service.UserService;
+import edu.cbsystematics.com.libraryprojectcbs.models.UserRole;
+import edu.cbsystematics.com.libraryprojectcbs.service.*;
+import edu.cbsystematics.com.libraryprojectcbs.utils.period.CountTimePeriod;
 import edu.cbsystematics.com.libraryprojectcbs.utils.role.RoleUtilsForStatus;
 import edu.cbsystematics.com.libraryprojectcbs.utils.period.MembershipDuration;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,7 +30,7 @@ import static edu.cbsystematics.com.libraryprojectcbs.LibraryProjectCbsApplicati
 
 
 @Controller
-@PreAuthorize("hasRole('READER')")
+@Secured(ROLE_READER)
 @RequestMapping(READER_HOME_URL)
 public class ReaderController {
 
@@ -38,16 +38,24 @@ public class ReaderController {
 
     private final LogsService logsService;
 
+    private final CardService cardService;
+
     private final FormService formService;
+
+    private final UserRoleService userRoleService;
 
     private final UserAuthenticationUtils userAuthenticationUtils;
 
+
     @Autowired
-    public ReaderController(UserService userService, LogsService logsService, FormService formService, UserAuthenticationUtils userAuthenticationUtils) {
+    public ReaderController(UserService userService, LogsService logsService, CardService cardService, FormService formService,
+                            UserAuthenticationUtils userAuthenticationUtils, UserRoleService userRoleService) {
         this.userService = userService;
         this.logsService = logsService;
+        this.cardService = cardService;
         this.formService = formService;
         this.userAuthenticationUtils = userAuthenticationUtils;
+        this.userRoleService = userRoleService;
     }
 
 
@@ -57,15 +65,17 @@ public class ReaderController {
         String roles = userAuthenticationUtils.getCurrentUserRoles(authentication);
 
         // Extract user information
-        User reader = userService.findByEmail(username);
+        User reader = userService.findByEmail(username).orElse(null);
         String fullName = (reader != null) ? reader.getFirstName() + " " + reader.getLastName() : "ANONYMOUS";
-        String status = RoleUtilsForStatus.getRoleLabel(roles);
+        String status = (roles != null) ? RoleUtilsForStatus.getRoleLabel(roles) : "anonymous";
         System.out.println("Show ReaderDashboard: " + fullName);
 
+        UserRole librarian = userRoleService.findRoleByName(ROLE_LIBRARIAN);
+        List <User> librarianList = userService.getListUsersByRoleId(librarian.getId());
         Long countLogin = logsService.countUserActions(ActionType.LOGIN, reader);
         String membershipDuration = MembershipDuration.calculateTotalDuration(reader);
-
         Integer countBook = formService.getFormsByUser(reader).size();
+        List<CountTimePeriod> countUserBooksRead = cardService.countUserBooksReadAfterDate(reader);
 
         model.addAttribute("READER_HOME_URL", READER_HOME_URL);
         model.addAttribute("fullName", fullName);
@@ -73,6 +83,8 @@ public class ReaderController {
         model.addAttribute("countLogin", countLogin);
         model.addAttribute("membershipDuration", membershipDuration);
         model.addAttribute("countBook", countBook);
+        model.addAttribute("librarianList", librarianList);
+        model.addAttribute("countUserBooksRead",countUserBooksRead);
 
         return "reader/reader-dashboard";
     }
@@ -81,7 +93,8 @@ public class ReaderController {
     public String showAboutReader(Authentication authentication, Model model) {
         String emailReader = userAuthenticationUtils.getCurrentUsername(authentication);
         // Extract user information
-        User reader = userService.findByEmail(emailReader);
+        User reader = userService.findByEmail(emailReader)
+                .orElseGet(User::new);
         // Get user Logs
         List<Logs> readerLogs = logsService.getLogsByUserCreator(reader);
 
@@ -92,7 +105,7 @@ public class ReaderController {
     }
 
     @GetMapping("/{id}/edit")
-    public String showEditReaderForm(@PathVariable Long id, Model model) {
+    public String showEditReaderForm(@PathVariable Long id, RedirectAttributes redirectAttributes, Model model) {
         // Retrieve the user and roles for the given ID.
         Optional<User> userOptional = userService.getUserById(id);
         if (userOptional.isPresent()) {
@@ -102,8 +115,8 @@ public class ReaderController {
             model.addAttribute("reader", readerDTO);
             return "reader/reader-edit";
         } else {
-            model.addAttribute("update_error", "Error updating user!");
-            return "redirect:/reader-about-user";
+            redirectAttributes.addFlashAttribute("update_error", "Error updating user!");
+            return "redirect:" + READER_HOME_URL + "reader-about-user";
         }
     }
 
@@ -112,7 +125,7 @@ public class ReaderController {
                             BindingResult result, RedirectAttributes redirectAttributes) {
 
         // Check if email is already in use
-        User emailExisting = userService.findByEmail(readerDTO.getEmail());
+        User emailExisting = userService.findByEmail(readerDTO.getEmail()).orElse(null);
         if (emailExisting != null && !Objects.equals(emailExisting.getId(), id)) {
             result.rejectValue("email", "user.exist", "There is already an account registered with that email");
         }

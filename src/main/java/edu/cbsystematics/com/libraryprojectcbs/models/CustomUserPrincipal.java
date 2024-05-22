@@ -4,31 +4,30 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.Collections;
 
 
-public class CustomUserDetails extends User implements UserDetails {
+public record CustomUserPrincipal(User user) implements UserDetails {
 
-    public CustomUserDetails(User user) {
-        super(user.getEmail(), user.getPassword(), user.getUserRole());
-    }
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Override
     public String getUsername() {
-        return super.getEmail();
+        return user.getEmail();
     }
 
     @Override
     public String getPassword() {
-        return super.getPassword();
+        return user.getPassword();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return super.getUserRole() != null ?
-                Collections.singletonList(new SimpleGrantedAuthority(super.getUserRole().getRoleName())) :
-                Collections.emptyList();
+        return user.getUserRole() != null ?
+                Collections.singletonList(new SimpleGrantedAuthority(user.getUserRole().getRoleName())) : Collections.emptyList();
     }
 
     @Override
@@ -46,9 +45,11 @@ public class CustomUserDetails extends User implements UserDetails {
         return true;
     }
 
+
+    // "User account is enabled / disabled
     @Override
     public boolean isEnabled() {
-        return true;
+        return user.isEnabled();
     }
 
 

@@ -1,21 +1,24 @@
 package edu.cbsystematics.com.libraryprojectcbs.controller;
 
 import edu.cbsystematics.com.libraryprojectcbs.config.security.UserAuthenticationUtils;
-import edu.cbsystematics.com.libraryprojectcbs.dto.UserDTO;
-import edu.cbsystematics.com.libraryprojectcbs.dto.UserMapper;
+import edu.cbsystematics.com.libraryprojectcbs.dto.card.CardDTO;
+import edu.cbsystematics.com.libraryprojectcbs.dto.form.FormDTO;
+import edu.cbsystematics.com.libraryprojectcbs.dto.user.UserDTO;
+import edu.cbsystematics.com.libraryprojectcbs.dto.user.UserMapper;
 import edu.cbsystematics.com.libraryprojectcbs.exception.ValidationExceptionHandler;
 import edu.cbsystematics.com.libraryprojectcbs.models.ActionType;
 import edu.cbsystematics.com.libraryprojectcbs.models.Logs;
 import edu.cbsystematics.com.libraryprojectcbs.models.User;
+import edu.cbsystematics.com.libraryprojectcbs.service.CardService;
 import edu.cbsystematics.com.libraryprojectcbs.service.FormService;
 import edu.cbsystematics.com.libraryprojectcbs.service.LogsService;
-import edu.cbsystematics.com.libraryprojectcbs.service.UserRoleService;
 import edu.cbsystematics.com.libraryprojectcbs.service.UserService;
+import edu.cbsystematics.com.libraryprojectcbs.utils.period.CountTimePeriod;
 import edu.cbsystematics.com.libraryprojectcbs.utils.role.RoleUtilsForStatus;
 import edu.cbsystematics.com.libraryprojectcbs.utils.period.MembershipDuration;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,6 +26,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,7 +35,7 @@ import static edu.cbsystematics.com.libraryprojectcbs.LibraryProjectCbsApplicati
 
 
 @Controller
-@PreAuthorize("hasRole('LIBRARIAN')")
+@Secured(ROLE_LIBRARIAN)
 @RequestMapping(LIBRARIAN_HOME_URL)
 public class LibrarianController {
 
@@ -39,19 +43,20 @@ public class LibrarianController {
 
     private final LogsService logsService;
 
+    private final CardService cardService;
+
     private final FormService formService;
 
     private final UserAuthenticationUtils userAuthenticationUtils;
 
-    private final UserRoleService userRoleService;
 
     @Autowired
-    public LibrarianController(UserService userService, LogsService logsService, FormService formService, UserAuthenticationUtils userAuthenticationUtils, UserRoleService userRoleService) {
+    public LibrarianController(UserService userService, LogsService logsService, CardService cardService, FormService formService, UserAuthenticationUtils userAuthenticationUtils) {
         this.userService = userService;
         this.logsService = logsService;
+        this.cardService = cardService;
         this.formService = formService;
         this.userAuthenticationUtils = userAuthenticationUtils;
-        this.userRoleService = userRoleService;
     }
 
 
@@ -61,15 +66,21 @@ public class LibrarianController {
         String roles = userAuthenticationUtils.getCurrentUserRoles(authentication);
 
         // Extract user information
-        User librarian = userService.findByEmail(username);
-        String fullName = (librarian != null) ? librarian.getFirstName() + " " + librarian.getLastName() : "ANONYMOUS";
-        String status = RoleUtilsForStatus.getRoleLabel(roles);
+        Optional<User> optionalLibrarian = userService.findByEmail(username);
+        User librarian = optionalLibrarian.orElse(null);
+        String fullName = optionalLibrarian.map(user -> user.getFirstName() + " " + user.getLastName()).orElse("ANONYMOUS");
+        String status = (roles != null) ? RoleUtilsForStatus.getRoleLabel(roles) : "anonymous";
         System.out.println("Show LibrarianDashboard: " + fullName);
 
         Long countLogin = logsService.countUserActions(ActionType.LOGIN, librarian);
         String membershipDuration = MembershipDuration.calculateTotalDuration(librarian);
-
         Integer countBook = formService.getFormsByUser(librarian).size();
+        List<CardDTO> pendingApprovalCards = cardService.getPendingApprovalCards();
+        List<FormDTO> formReturnDetails = cardService.getFormDetails();
+        Long countReadingBooks = cardService.countReadingBooks();
+        List<CountTimePeriod> countApprovedByLibrarian = optionalLibrarian.map(User::getId)
+                .map(formService::getFormsRegistrationByLibrarian)
+                .orElse(Collections.emptyList());
 
         model.addAttribute("LIBRARIAN_HOME_URL", LIBRARIAN_HOME_URL);
         model.addAttribute("fullName", fullName);
@@ -77,6 +88,10 @@ public class LibrarianController {
         model.addAttribute("countLogin", countLogin);
         model.addAttribute("membershipDuration", membershipDuration);
         model.addAttribute("countBook", countBook);
+        model.addAttribute("countReadingBooks", countReadingBooks);
+        model.addAttribute("cardApproveSize", pendingApprovalCards.size());
+        model.addAttribute("formReturnSize", formReturnDetails.size());
+        model.addAttribute("countApprovedByLibrarian", countApprovedByLibrarian);
         return "librarian/librarian-dashboard";
     }
 
@@ -84,7 +99,8 @@ public class LibrarianController {
     public String showAboutLibrarian(Authentication authentication, Model model) {
         String emailLibrarian = userAuthenticationUtils.getCurrentUsername(authentication);
         // Extract user information
-        User librarian = userService.findByEmail(emailLibrarian);
+        User librarian = userService.findByEmail(emailLibrarian)
+                .orElseGet(User::new);
         // Get user Logs
         List<Logs> librarianLogs = logsService.getLogsByUserCreator(librarian);
 
@@ -106,7 +122,7 @@ public class LibrarianController {
             return "librarian/librarian-edit";
         } else {
             model.addAttribute("update_error", "Error updating user!");
-            return "redirect:/librarian-about-user";
+            return "redirect:" + LIBRARIAN_HOME_URL + "librarian-about-user";
         }
     }
 
@@ -115,7 +131,7 @@ public class LibrarianController {
                             BindingResult result, RedirectAttributes redirectAttributes) {
 
         // Check if email is already in use
-        User emailExisting = userService.findByEmail(librarianDTO.getEmail());
+        User emailExisting = userService.findByEmail(librarianDTO.getEmail()).orElse(null);
         if (emailExisting != null && !Objects.equals(emailExisting.getId(), id)) {
             result.rejectValue("email", "user.exist", "There is already an account registered with that email");
         }

@@ -19,7 +19,7 @@ public class MembershipDuration {
         }
 
         // Get the registration date
-        LocalDate startDate = user.getRegDate();
+        LocalDate startDate = user.getRegDate().toLocalDate();
         // Get the current date
         LocalDate endDate = LocalDate.now();
 

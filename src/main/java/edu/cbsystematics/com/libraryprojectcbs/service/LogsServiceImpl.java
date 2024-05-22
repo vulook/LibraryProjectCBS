@@ -89,15 +89,6 @@ public class LogsServiceImpl implements LogsService {
         return actionCounts;
     }
 
-/*    @Override
-    public List<String> getLogsFullNames(String roleName) {
-        List<Logs> users = logsRepository.findAllByRole(roleName);
-        return users.stream()
-                .map(Logs::getFullName)
-                .distinct()
-                .toList();
-    }*/
-
     @Override
     public List<Logs> getUsersByRoleAndFullName(String roleName, String fullName) {
         return logsRepository.findAllByRoleAndFullName(roleName, fullName);
@@ -112,5 +103,26 @@ public class LogsServiceImpl implements LogsService {
         }
     }
 
+    @Override
+    public List<Logs> findAllLogsByFullName(String fullName) {
+        return logsRepository.findAllByFullName(fullName);
+    }
+
+    @Override
+    public void deleteAllAnonymousLogs() {
+        logsRepository.deleteAllAnonymousLogs();
+    }
+
+
+    /**********************************************
+    @Override
+    public List<String> getLogsFullNames(String roleName) {
+        List<Logs> users = logsRepository.findAllByRole(roleName);
+        return users.stream()
+                .map(Logs::getFullName)
+                .distinct()
+                .toList();
+    }
+    *************************************************/
 
 }

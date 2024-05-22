@@ -1,4 +1,4 @@
-package edu.cbsystematics.com.libraryprojectcbs.dto;
+package edu.cbsystematics.com.libraryprojectcbs.dto.user;
 
 import edu.cbsystematics.com.libraryprojectcbs.models.User;
 import lombok.AccessLevel;
@@ -18,6 +18,7 @@ public class UserFullMapper {
                 user.getEmail(),
                 user.getUserRole(),
                 user.getRegDate(),
+                user.isEnabled(),
                 user.getPassword()
         );
     }
@@ -32,6 +33,7 @@ public class UserFullMapper {
                 userFullDTO.getEmail(),
                 userFullDTO.getPassword(),
                 userFullDTO.getRegDate(),
+                userFullDTO.isEnabled(),
                 userFullDTO.getUserRole()
         );
     }

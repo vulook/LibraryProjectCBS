@@ -1,21 +1,26 @@
-package edu.cbsystematics.com.libraryprojectcbs.dto;
+package edu.cbsystematics.com.libraryprojectcbs.dto.user;
 
-import edu.cbsystematics.com.libraryprojectcbs.utils.validemail.ValidEmail;
+import edu.cbsystematics.com.libraryprojectcbs.models.UserRole;
 import edu.cbsystematics.com.libraryprojectcbs.utils.validdate.AgeConstraint;
+import edu.cbsystematics.com.libraryprojectcbs.utils.validdate.ValidData;
+import edu.cbsystematics.com.libraryprojectcbs.utils.validemail.ValidEmail;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDTO {
+public class UserFullDTO {
 
     private Long id;
 
@@ -51,10 +56,20 @@ public class UserDTO {
     private String phone;
 
     @NotNull(message = "Email is required")
-    @Pattern(regexp = "^[_A-Za-z0-9-+]+(.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(.[A-Za-z0-9]+)*(.[A-Za-z]{2,})$", message = "Email should be valid")
-    @Email(message = "Email address should be valid")
     @ValidEmail
+    @Email(message = "Email address should be valid")
+    @Pattern(regexp = "^[_A-Za-z0-9-+]+(.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(.[A-Za-z0-9]+)*(.[A-Za-z]{2,})$", message = "Email should be valid")
     private String email;
+
+    @NotNull(message = "Role is required")
+    private UserRole userRole;
+
+    @NotNull(message = "Date of registration is required")
+    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm")
+    private LocalDateTime regDate;
+
+    @NotNull(message = "Boolean 'enabled' is required")
+    private boolean enabled;
 
     @Size(min = 8, max = 70, message = "Password should be between 8 and 20 characters")
     @Pattern.List({

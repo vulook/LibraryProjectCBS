@@ -1,6 +1,8 @@
 package edu.cbsystematics.com.libraryprojectcbs.service;
 
+import edu.cbsystematics.com.libraryprojectcbs.dto.author.AuthorDTO;
 import edu.cbsystematics.com.libraryprojectcbs.models.Author;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,16 +22,17 @@ public interface AuthorService {
     // Delete an Author by ID.
     void deleteAuthor(Long id);
 
+    // Retrieve all Authors.
+    List<Author> getAllAuthors();
+
     // Retrieve an Author by their ID.
     Optional<Author> getAuthorById(Long id);
 
-    // Retrieve all Authors.
-    List<Author> getAllAuthors();
+    Optional<Author> findAuthorByFirstNameAndLastName(String firstName, String lastName);
 
     // Search for Authors by first or last name.
     List<Author> searchAuthorsByFullName(String query);
 
-    // Retrieve an Author's ID by their first name and last name.
-    Long getAuthorIdByFullName(String firstName, String lastName);
+    List<AuthorDTO> searchAuthorsWithBookCount(String query);
 
 }

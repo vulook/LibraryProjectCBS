@@ -11,6 +11,7 @@ import org.hibernate.annotations.SortComparator;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -47,21 +48,22 @@ public class User {
     @Column(name = "password", nullable = false, columnDefinition = "varchar(80)")
     private String password;
 
-    @DateTimeFormat(pattern = "dd-MM-yyyy")
+    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm")
     @Column(name = "reg_date", nullable = false)
-    private LocalDate regDate;
+    private LocalDateTime regDate;
 
-/*    @Column(name = "verification_code", columnDefinition = "varchar(80)")
+    @Column(name = "verification_code", columnDefinition = "varchar(80)")
     private String verificationCode;
 
-    @Column(name = "enabled", nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
-    private boolean enabled;*/
+    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm")
+    @Column(name = "reset_date")
+    private LocalDateTime passwordResetDate;
+
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Card> carts;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Form> forms;
 
     @OneToMany(mappedBy = "userCreator", cascade = CascadeType.ALL)
     private List<Logs> logs;
@@ -69,6 +71,7 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "user_role", referencedColumnName = "id")
     private UserRole userRole;
+
 
     public User(String email, String password, UserRole userRole) {
         this.email = email;
@@ -83,9 +86,10 @@ public class User {
         this.phone = phone;
         this.email = email;
         this.password = password;
+        this.enabled = false;
     }
 
-    public User(String firstName, String lastName, LocalDate birthDate, String phone, String email, String password, LocalDate regDate, UserRole userRole) {
+    public User(String firstName, String lastName, LocalDate birthDate, String phone, String email, String password, LocalDateTime regDate, boolean enabled, UserRole userRole) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.birthDate = birthDate;
@@ -93,6 +97,7 @@ public class User {
         this.email = email;
         this.password = password;
         this.regDate = regDate;
+        this.enabled = enabled;
         this.userRole = userRole;
     }
 
@@ -101,6 +106,7 @@ public class User {
 
     @Transient
     private int term;
+
 
     // This method returns the age of the current user
     @SortComparator(ComparatorAge.class)
@@ -120,7 +126,8 @@ public class User {
             return -1;
         }
         LocalDate currentDate = LocalDate.now();
-        long years = ChronoUnit.YEARS.between(this.regDate, currentDate);
+        LocalDate regDateWithoutTime = this.regDate.toLocalDate();
+        long years = ChronoUnit.YEARS.between(regDateWithoutTime, currentDate);
         return (int) years;
     }
 

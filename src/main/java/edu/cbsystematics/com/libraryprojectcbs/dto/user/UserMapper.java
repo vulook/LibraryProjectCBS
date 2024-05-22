@@ -1,4 +1,4 @@
-package edu.cbsystematics.com.libraryprojectcbs.dto;
+package edu.cbsystematics.com.libraryprojectcbs.dto.user;
 
 import edu.cbsystematics.com.libraryprojectcbs.models.User;
 import lombok.AccessLevel;

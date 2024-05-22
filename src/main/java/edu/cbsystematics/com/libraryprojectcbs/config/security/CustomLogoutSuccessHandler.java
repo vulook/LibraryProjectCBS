@@ -47,9 +47,17 @@ public class CustomLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
 
         }
 
+        // Set Message in session attribute
+        request.getSession().setAttribute("logout", "logout");
+
+        // Redirect to the logout URL
+        String redirectUrl = response.encodeURL("/login?logout");
+        response.sendRedirect(redirectUrl);
+
         // Call to handle the logout success event
         super.onLogoutSuccess(request, response, authentication);
     }
+
 
     private String getUsername(Authentication authentication) {
         return authentication.getName();

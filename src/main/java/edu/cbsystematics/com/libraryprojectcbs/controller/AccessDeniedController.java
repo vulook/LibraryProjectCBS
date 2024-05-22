@@ -3,7 +3,6 @@ package edu.cbsystematics.com.libraryprojectcbs.controller;
 import edu.cbsystematics.com.libraryprojectcbs.aop.Loggable;
 import edu.cbsystematics.com.libraryprojectcbs.config.security.UserAuthenticationUtils;
 import edu.cbsystematics.com.libraryprojectcbs.models.ActionType;
-import edu.cbsystematics.com.libraryprojectcbs.models.User;
 import edu.cbsystematics.com.libraryprojectcbs.service.UserService;
 import edu.cbsystematics.com.libraryprojectcbs.utils.ErrorMessageDetails;
 import jakarta.servlet.RequestDispatcher;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 
 
 @Controller
@@ -94,8 +92,7 @@ public class AccessDeniedController {
 
     // Gets the current user
     private String getFullName(String username) {
-        User user = userService.findByEmail(username);
-        return Optional.ofNullable(user)
+        return userService.findByEmail(username)
                 .map(u -> u.getFirstName() + " " + u.getLastName())
                 .orElse("ANONYMOUS");
     }

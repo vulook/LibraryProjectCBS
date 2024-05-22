@@ -11,7 +11,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>, PagingAndSortingRepository<User, Long> {
@@ -19,7 +21,7 @@ public interface UserRepository extends JpaRepository<User, Long>, PagingAndSort
     // Update User Information
     @Modifying
     @Transactional
-    @Query("UPDATE User u SET u.firstName = :firstName, u.lastName = :lastName, u.birthDate = :birthDate, u.phone = :phone, u.email = :email, u.password = :password, u.regDate = :regDate, u.userRole = :userRole WHERE u.id = :id")
+    @Query("UPDATE User u SET u.firstName = :firstName, u.lastName = :lastName, u.birthDate = :birthDate, u.phone = :phone, u.email = :email, u.password = :password, u.regDate = :regDate, u.enabled = :enabled, u.userRole = :userRole WHERE u.id = :id")
     void updateUser(
             Long id,
             @Param("firstName") String firstName,
@@ -28,7 +30,8 @@ public interface UserRepository extends JpaRepository<User, Long>, PagingAndSort
             @Param("phone") String phone,
             @Param("email") String email,
             @Param("password") String password,
-            @Param("regDate") LocalDate regDate,
+            @Param("regDate") LocalDateTime regDate,
+            @Param("enabled") boolean enabled,
             @Param("userRole") UserRole userRole
     );
 
@@ -43,6 +46,15 @@ public interface UserRepository extends JpaRepository<User, Long>, PagingAndSort
             @Param("birthDate") LocalDate birthDate,
             @Param("phone") String phone,
             @Param("email") String email,
+            @Param("password") String password
+    );
+
+    // Update Password
+    @Modifying
+    @Transactional
+    @Query("UPDATE User u SET u.password = :password WHERE u.id = :id")
+    void updatePassword(
+            Long id,
             @Param("password") String password
     );
 
@@ -70,9 +82,13 @@ public interface UserRepository extends JpaRepository<User, Long>, PagingAndSort
     boolean existsByBirthDate(LocalDate birthDate);
 
     // Get Email
-    User findByEmail(String email);
+    Optional<User> findByEmail(String email);
 
     @Query("SELECT COUNT(u) FROM User u WHERE u.userRole = :role AND u.regDate >= :afterDate")
-    Long countUsersByRoleAddedAfterDate(@Param("role") UserRole role, @Param("afterDate") LocalDate afterDate);
+    Long countUsersByRoleAddedAfterDate(@Param("role") UserRole role, @Param("afterDate") LocalDateTime afterDate);
+
+    @Query("SELECT u FROM User u WHERE u.verificationCode = :verificationCode")
+    User findByVerificationCode(@Param("verificationCode") String verificationCode);
+
 
 }

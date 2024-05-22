@@ -8,6 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.Set;
 
 
 @Configuration
@@ -17,6 +18,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/login").setViewName("logging/login");
         registry.addViewController("/registration").setViewName("logging/registration");
+        registry.addViewController("/library").setViewName("public/library");
     }
 
     @Override
@@ -26,6 +28,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         .filter(s -> !s.isEmpty())
                         .map(s -> LocalDate.parse(s, DateTimeFormatter.ofPattern("dd-MM-yyyy")))
                         .orElse(null));
+
+        registry.addFormatterForFieldType(Set.class, new StringToAuthorsSetConverter());
     }
 
 

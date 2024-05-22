@@ -22,7 +22,7 @@ import static edu.cbsystematics.com.libraryprojectcbs.LibraryProjectCbsApplicati
 
 
 @Controller
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('ROLE_ADMIN')")
 @RequestMapping(ADMIN_HOME_URL)
 public class LogsUserController {
 
@@ -48,7 +48,7 @@ public class LogsUserController {
 
     @GetMapping("/logs-{tab}")
     public String tab(@PathVariable String tab) {
-        if (Arrays.asList("tab1", "tab2", "tab3", "tab4")
+        if (Arrays.asList("tab1", "tab2")
                 .contains(tab)) {
             return "logs/_logs-" + tab;
         }
@@ -73,39 +73,22 @@ public class LogsUserController {
         });
     */
 
+        model.addAttribute("ADMIN_HOME_URL", ADMIN_HOME_URL);
         model.addAttribute("monthNames", monthNames);
         model.addAttribute("actionCounts", actionCounts);
         return "logs/_logs-tab1";
     }
 
 
-    @PostMapping("/logs-tab2")
-    public String filterLogsActionType(Model model, @RequestParam ActionType actionType) {
-        model.addAttribute("actionTypes", Arrays.asList(ActionType.values()));
-        model.addAttribute("logs", logsService.getLogsByActionType(actionType));
+    @GetMapping("/logs-tab2")
+    public String filterLogsActionType(Model model) {
+        String fullNane = "ANONYMOUS";
+        List<Logs> anonymousList = logsService.findAllLogsByFullName(fullNane);
+
+        model.addAttribute("ADMIN_HOME_URL", ADMIN_HOME_URL);
+        model.addAttribute("anonymousList", anonymousList);
         return "logs/_logs-tab2";
     }
-
-    @GetMapping("/logs-tab3")
-    public String showUsersByRoleAdmin(Model model) {
-        model.addAttribute("ADMIN_HOME_URL", ADMIN_HOME_URL);
-        return "logs/_logs-tab3";
-    }
-
-    @PostMapping("/logs-tab3")
-    public String showLogsForUserByRoleAdmin(@RequestParam("selectedId") Long selectedId, RedirectAttributes redirectAttributes, Model model) {
-        model.addAttribute("ADMIN_HOME_URL", ADMIN_HOME_URL);
-        return "logs/_logs-tab3";
-    }
-
-    @GetMapping("/logs-tab4")
-    public String showUsersByRoleLibrarianAndFullName(@PathVariable String fullName, Model model) {
-        List<Logs> librarians = logsService.getUsersByRoleAndFullName(ROLE_LIBRARIAN, fullName);
-
-        model.addAttribute("librarians", librarians);
-        return "logs/_logs-tab4";
-    }
-
 
     @GetMapping("/logs/admin/log")
     public String showFormAdminLogs(Model model) {
@@ -119,7 +102,7 @@ public class LogsUserController {
     }
 
     @PostMapping("/logs/admin/log")
-    public String getLogsForAdmin(@RequestParam("selectedId") Long selectedId, RedirectAttributes redirectAttributes, Model model) {
+    public String getLogsForAdmin(@RequestParam(name = "selectedId", required = false) Long selectedId, RedirectAttributes redirectAttributes, Model model) {
         if (selectedId == null) {
             redirectAttributes.addAttribute("errorMessage", "Please select an admin");
             return "redirect:" + ADMIN_HOME_URL + "logs?error";
@@ -149,7 +132,7 @@ public class LogsUserController {
     }
 
     @PostMapping("/logs/librarian/log")
-    public String getLogsForLibrarian(@RequestParam("selectedId") Long selectedId, RedirectAttributes redirectAttributes, Model model) {
+    public String getLogsForLibrarian(@RequestParam(name = "selectedId", required = false) Long selectedId, RedirectAttributes redirectAttributes, Model model) {
         if (selectedId == null) {
             redirectAttributes.addAttribute("errorMessage", "Please select an librarian");
             return "redirect:" + ADMIN_HOME_URL + "logs?error";
@@ -169,6 +152,7 @@ public class LogsUserController {
 
     @GetMapping("/logs/action")
     public String showLogByActionTypePage(Model model) {
+        model.addAttribute("ADMIN_HOME_URL", ADMIN_HOME_URL);
         model.addAttribute("actionTypes", ActionType.values());
         return "logs/logs-action";
     }
@@ -178,13 +162,27 @@ public class LogsUserController {
                                          @RequestParam String sortField,
                                          @RequestParam String sortOrder,
                                          Model model) {
+
         Sort sort = Sort.by(sortOrder.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
         List<Logs> logs = logsService.getLogSortByActionType(actionType, sort);
+
+        model.addAttribute("ADMIN_HOME_URL", ADMIN_HOME_URL);
         model.addAttribute("logs", logs);
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortOrder", sortOrder);
         return "logs/logs-action";
     }
 
+    @PostMapping("/logs/deleteAnonymous")
+    public String deleteAnonymousLogs(RedirectAttributes redirectAttributes) {
+        try {
+            logsService.deleteAllAnonymousLogs();
+            redirectAttributes.addAttribute("successMessage", "ANONYMOUS successfully deleted.");
+        } catch (Exception e) {
+            redirectAttributes.addAttribute("errorMessage", "Error deleting ANONYMOUS logs!");
+            return "redirect:" + ADMIN_HOME_URL + "logs?error";
+        }
+        return "redirect:" + ADMIN_HOME_URL + "logs?success";
+    }
 
 }

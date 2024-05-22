@@ -2,7 +2,6 @@ package edu.cbsystematics.com.libraryprojectcbs.controller;
 
 import edu.cbsystematics.com.libraryprojectcbs.exception.*;
 import edu.cbsystematics.com.libraryprojectcbs.models.User;
-import edu.cbsystematics.com.libraryprojectcbs.service.UserRoleService;
 import edu.cbsystematics.com.libraryprojectcbs.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,7 @@ public class UserController {
     }
 
     @GetMapping("/list")
-    public String displayUsersList(Model model) {
+    public String displayUserList(Model model) {
         // Retrieve a list of all users
         List<User> users = userService.getAllUsers();
         model.addAttribute("users", users);
@@ -43,7 +42,7 @@ public class UserController {
             model.addAttribute("user", user);
             return "users/user-details";
         } else {
-            throw new ResourceNotFoundException("User not found for ID: " + id);
+            throw new UserNotFoundException("User not found for ID: " + id);
         }
     }
 
@@ -112,7 +111,7 @@ public class UserController {
                 return "redirect:/library/users/error";
             }
         } else {
-            throw new ResourceNotFoundException("User not found");
+            throw new UserNotFoundException("User not found");
         }
     }
 
@@ -125,13 +124,13 @@ public class UserController {
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
                 String firstNameD = user.getFirstName();
-                String LastNameD = user.getLastName();
+                String lastNameD = user.getLastName();
                 userService.deleteUser(id);
 
-                redirectAttributes.addAttribute("successMessage", "User '" + firstNameD + ' ' + LastNameD + "' successfully deleted.");
+                redirectAttributes.addAttribute("successMessage", "User '" + firstNameD + ' ' + lastNameD + "' successfully deleted.");
                 return "redirect:/library/users/success";
             } else {
-                throw new ResourceNotFoundException("User not found for ID: " + id);
+                throw new UserNotFoundException("User not found for ID: " + id);
             }
         } catch (AdminDeletionException ex) {
             redirectAttributes.addAttribute("errorMessage", ex.getMessage());
@@ -139,48 +138,6 @@ public class UserController {
         }
     }
 
-    @GetMapping("/search-user")
-    public String showSearchFormUser() {
-        // Displays the search form page.
-        return "users/search-form";
-    }
-
-    @GetMapping("/search-results")
-    public String searchWUsers(@RequestParam(name = "searchQuery") String query, Model model) {
-        // Searches for users based on the provided query.
-        List<User> searchResults = userService.searchUsersByFullName(query);
-        if (searchResults.isEmpty()) {
-            model.addAttribute("message", "No users found with the given criteria.");
-        } else {
-            model.addAttribute("users", searchResults);
-        }
-
-        // Displays the search results page.
-        return "users/search-results";
-    }
-
-
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public String handleUserNotFoundException(UserNotFoundException ex, Model model) {
-        model.addAttribute("errorMessage", ex.getMessage());
-        return "redirect:/library/users/error";
-    }
-
-    @ExceptionHandler(UserRoleNotFoundException.class)
-    public String handleUserRoleNotFoundException(UserRoleNotFoundException ex, Model model) {
-        model.addAttribute("errorMessage", ex.getMessage());
-        return "redirect:/library/users/error";
-    }
-
-    @GetMapping("/error")
-    public String errorPage(@ModelAttribute("errorMessage") String errorMessage, Model model) {
-        if (errorMessage.isEmpty()) {
-            errorMessage = "Oops! Something went wrong.";
-        }
-        model.addAttribute("errorMessage", errorMessage);
-        return "users/error-page";
-    }
 
 }
 

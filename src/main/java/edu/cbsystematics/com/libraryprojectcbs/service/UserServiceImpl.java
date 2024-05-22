@@ -1,7 +1,7 @@
 package edu.cbsystematics.com.libraryprojectcbs.service;
 
 import edu.cbsystematics.com.libraryprojectcbs.aop.Loggable;
-import edu.cbsystematics.com.libraryprojectcbs.dto.*;
+import edu.cbsystematics.com.libraryprojectcbs.dto.login.UserRegistrationDTO;
 import edu.cbsystematics.com.libraryprojectcbs.exception.UserNotFoundException;
 import edu.cbsystematics.com.libraryprojectcbs.utils.comparator.ComparatorAge;
 import edu.cbsystematics.com.libraryprojectcbs.utils.comparator.ComparatorTerm;
@@ -11,7 +11,7 @@ import edu.cbsystematics.com.libraryprojectcbs.models.ActionType;
 import edu.cbsystematics.com.libraryprojectcbs.models.User;
 import edu.cbsystematics.com.libraryprojectcbs.models.UserRole;
 import edu.cbsystematics.com.libraryprojectcbs.repository.UserRepository;
-import edu.cbsystematics.com.libraryprojectcbs.utils.period.CountUsersFromTimePeriod;
+import edu.cbsystematics.com.libraryprojectcbs.utils.period.CountTimePeriod;
 import edu.cbsystematics.com.libraryprojectcbs.utils.period.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static edu.cbsystematics.com.libraryprojectcbs.LibraryProjectCbsApplication.ROLE_ADMIN;
@@ -56,9 +57,10 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+
     @Loggable(value = ActionType.CREATE)
     @Override
-    public void createUserRegistration(UserRegistrationDTO registrationDTO) {
+    public User createUserRegistration(UserRegistrationDTO registrationDTO) {
         User user = new User();
         user.setFirstName(registrationDTO.getFirstName());
         user.setLastName(registrationDTO.getLastName());
@@ -74,29 +76,48 @@ public class UserServiceImpl implements UserService {
 
         // Encrypt the user's password
         user.setPassword(passwordEncoder.encode(registrationDTO.getPassword()));
-        user.setRegDate(LocalDate.now());
+        user.setRegDate(LocalDateTime.now());
+
+        // Create a verification code
+        String verificationCode = UUID.randomUUID().toString();
+        user.setVerificationCode(verificationCode);
+
+        // Disable the account until it is verified
+        user.setEnabled(false);
+
         // Check if the role "ROLE_READER" already exists
         UserRole roleReader = userRoleService.findRoleByName(ROLE_READER);
         // Role doesn't exist, create and save it or Role exists, use it
         user.setUserRole(Objects.requireNonNullElseGet(roleReader, () -> new UserRole(ROLE_READER, "Reader role with access to browse and borrow library resources")));
         // Save the user
         userRepository.save(user);
+        return user;
     }
+
 
     @Loggable(value = ActionType.CREATE)
     @Override
-    public void createUser(User createdUser) {
+    public User createUser(User createdUser) {
         // Check if user already exists in the database
         if (checkCreatedUserDetails(createdUser)) {
             throw new UserAlreadyExistsException("User with full name '" + createdUser.getFirstName() + " " + createdUser.getLastName() + "' and birthdate '" + createdUser.getBirthDate() + "' already exists.");
         }
 
         createdUser.setPassword(passwordEncoder.encode(createdUser.getPassword()));
-        createdUser.setRegDate(LocalDate.now());
+        createdUser.setRegDate(LocalDateTime.now());
+
+        // Create a verification code
+        String verificationCode = UUID.randomUUID().toString();
+        createdUser.setVerificationCode(verificationCode);
+
+        // Disable the account until it is verified
+        createdUser.setEnabled(false);
 
         // Save the user
         userRepository.save(createdUser);
+        return createdUser;
     }
+
 
     // Method for checking the data of the user
     private boolean checkCreatedUserDetails(User user) {
@@ -105,9 +126,10 @@ public class UserServiceImpl implements UserService {
                 && userRepository.existsByBirthDate(user.getBirthDate());
     }
 
+
     @Loggable(value = ActionType.UPDATE)
-    @Override
     @Transactional
+    @Override
     public void updateUser(Long id, User updatedUser) {
         // Retrieve the existing user
         User existingUser = userRepository.findById(id)
@@ -134,9 +156,11 @@ public class UserServiceImpl implements UserService {
                 updatedUser.getEmail(),
                 encodedPassword,
                 updatedUser.getRegDate(),
+                updatedUser.isEnabled(),
                 updatedUser.getUserRole()
         );
     }
+
 
     // Method for checking the data of the user
     private boolean checkUpdatedUserDetails(User existingUser, User updatedUser, Long id) {
@@ -146,9 +170,10 @@ public class UserServiceImpl implements UserService {
                 !Objects.equals(existingUser.getId(), id);
     }
 
+
     @Loggable(value = ActionType.UPDATE)
-    @Override
     @Transactional
+    @Override
     public void partialUpdateUser(Long id, String firstName, String lastName, LocalDate birthDate, String phone, String email, String password) {
         // Retrieve the existing user
         User existingUser = userRepository.findById(id)
@@ -175,6 +200,7 @@ public class UserServiceImpl implements UserService {
         );
     }
 
+
     // Method for checking the data of the user
     private void checkUpdatedUserDetails(User existingUser, String firstName, String lastName, LocalDate birthDate) {
         if ((!existingUser.getFirstName().equals(firstName) && userRepository.existsByFirstName(firstName)) ||
@@ -185,6 +211,7 @@ public class UserServiceImpl implements UserService {
                             "', Date of birth '" + birthDate + "' already exists");
         }
     }
+
 
     @Loggable(value = ActionType.DELETE)
     @Override
@@ -200,6 +227,7 @@ public class UserServiceImpl implements UserService {
             userRepository.deleteById(id);
         }
     }
+
 
     @Loggable(value = ActionType.DELETE)
     @Override
@@ -221,15 +249,24 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(userId);
     }
 
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+
     @Override
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
+
     @Override
     public List<User> searchUsersByFullName(String query) {
         return userRepository.searchUserByNameOrLastName(query);
     }
+
 
     @Override
     public int getTotalUsersByRoleId(Long roleId) {
@@ -242,33 +279,31 @@ public class UserServiceImpl implements UserService {
         return userRepository.countAllByUserRoleId(roleId);
     }
 
+
     @Override
     public List<User> getListUsersByRoleId(Long roleId) {
         return userRepository.findAllByUserRoleId(roleId);
     }
+
 
     @Override
     public List<User> getUsersWithoutRoleId() {
         return userRepository.findUsersWithoutRole();
     }
 
-    @Override
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
 
     @Override
-    public List<CountUsersFromTimePeriod> getUserRegistrationsByRole(UserRole role) {
-        LocalDate currentDate = DateUtils.getCurrentDate();
-        LocalDate previousDay = DateUtils.getPreviousDay();
-        LocalDate previousWeek = DateUtils.getPreviousWeek();
-        LocalDate previousMonth = DateUtils.getPreviousMonth();
-        LocalDate previousSixMonths = DateUtils.getPreviousSixMonths();
-        LocalDate previousYear = DateUtils.getPreviousYear();
-        LocalDate forAllTime = DateUtils.getAllTime();
+    public List<CountTimePeriod> getUserRegistrationsByRole(UserRole role) {
+        LocalDateTime currentDate = DateUtils.getCurrentDate().atStartOfDay();
+        LocalDateTime previousDay = DateUtils.getPreviousDay().atStartOfDay();
+        LocalDateTime previousWeek = DateUtils.getPreviousWeek().atStartOfDay();
+        LocalDateTime previousMonth = DateUtils.getPreviousMonth().atStartOfDay();
+        LocalDateTime previousSixMonths = DateUtils.getPreviousSixMonths().atStartOfDay();
+        LocalDateTime previousYear = DateUtils.getPreviousYear().atStartOfDay();
+        LocalDateTime forAllTime = DateUtils.getAllTime().atStartOfDay();
 
         return Collections.singletonList(
-                CountUsersFromTimePeriod.builder()
+                CountTimePeriod.builder()
                         .countUsersFromCurrentDate(userRepository.countUsersByRoleAddedAfterDate(role, currentDate))
                         .countUsersFromPreviousDay(userRepository.countUsersByRoleAddedAfterDate(role, previousDay))
                         .countUsersFromPreviousWeek(userRepository.countUsersByRoleAddedAfterDate(role, previousWeek))
@@ -279,6 +314,7 @@ public class UserServiceImpl implements UserService {
                         .build()
         );
     }
+
 
     @Override
     public Page<User> paginationUsers(Integer pageNumber, Integer pageSize, String sortField, String sortDirection) {
@@ -322,5 +358,28 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Override
+    public User findByVerificationCode(String verificationCode) {
+        return userRepository.findByVerificationCode(verificationCode);
+    }
+
+    @Override
+    public void createPasswordResetToken(User user) {
+        // Create a verification code
+        String verificationCode = UUID.randomUUID().toString();
+        user.setVerificationCode(verificationCode);
+
+        // Create a password reset Date
+        user.setPasswordResetDate(LocalDateTime.now());
+
+        // Save the new user
+        userRepository.save(user);
+    }
+
+
+    @Override
+    public void updatePassword(Long id, String password) {
+        userRepository.updatePassword(id, password);
+    }
 
 }

@@ -35,12 +35,19 @@ public class ExceptionHandlerController {
 
         String username;
         String role;
+        int statusCode;
 
         // Get the HTTP error status code from the request
         Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+        System.out.println(status);
+
+        // If the status is not defined in the request, determine it based on the exception
+        status = status != null ? status : getStatusCodeForException(ex);
+        System.out.println(status);
 
         // Parse the status code
-        int statusCode = status != null ? Integer.parseInt(status.toString()) : HttpStatus.NOT_FOUND.value();
+        statusCode = status != null ? Integer.parseInt(status.toString()) : HttpStatus.NOT_FOUND.value();
+        System.out.println(statusCode);
 
         // Handle unauthorized access
         if (statusCode == HttpStatus.UNAUTHORIZED.value()) {
@@ -69,14 +76,25 @@ public class ExceptionHandlerController {
                 .username(username != null ? username : "Anonymous")
                 .role(role)
                 .error(ex.getMessage())
-                .message("Requested resource wasn't found on the server")
+                .message("The server encountered an unexpected condition that prevented it from fulfilling the request.")
                 .build();
 
         model.addAttribute("details", details);
 
-        return "error/404";
+        return statusCode >= 500 ? "error/500" : "error/404";
     }
 
+    private int getStatusCodeForException(Exception ex) {
+        if (ex.getMessage() != null) {
+            String message = ex.getMessage().toLowerCase();
+            if (message.contains("no static resource") || message.contains("resource not found")) {
+                return HttpStatus.NOT_FOUND.value();
+            } else if (message.contains("bad request") || message.contains("invalid request")) {
+                return HttpStatus.BAD_REQUEST.value();
+            }
+        }
+        return HttpStatus.INTERNAL_SERVER_ERROR.value();
+    }
 
     // Gets the current date and time formatted as "dd.MM.yyyy HH:mm:ss".
     private String getCurrentDateAndTime() {
@@ -85,5 +103,8 @@ public class ExceptionHandlerController {
         return now.format(formatter);
     }
 
+
 }
+
+
 

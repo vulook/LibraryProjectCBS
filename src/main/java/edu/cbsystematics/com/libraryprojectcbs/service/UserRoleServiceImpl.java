@@ -1,19 +1,20 @@
 package edu.cbsystematics.com.libraryprojectcbs.service;
 
+import edu.cbsystematics.com.libraryprojectcbs.aop.Loggable;
 import edu.cbsystematics.com.libraryprojectcbs.exception.*;
+import edu.cbsystematics.com.libraryprojectcbs.models.ActionType;
 import edu.cbsystematics.com.libraryprojectcbs.models.User;
 import edu.cbsystematics.com.libraryprojectcbs.models.UserRole;
 import edu.cbsystematics.com.libraryprojectcbs.repository.UserRepository;
 import edu.cbsystematics.com.libraryprojectcbs.repository.UserRoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 import static edu.cbsystematics.com.libraryprojectcbs.LibraryProjectCbsApplication.ROLE_ADMIN;
+
 
 @Service
 public class UserRoleServiceImpl implements UserRoleService {
@@ -37,6 +38,7 @@ public class UserRoleServiceImpl implements UserRoleService {
         userRoleRepository.save(userRole);
     }
 
+    @Loggable(value = ActionType.CREATE)
     @Override
     public void createRole(UserRole userRole) {
         // Check for Role name
@@ -52,30 +54,8 @@ public class UserRoleServiceImpl implements UserRoleService {
         return userRoleRepository.existsByRoleName(roleName);
     }
 
-    @Override
-    @Transactional
-    public void updateRole(Long id, UserRole updatedRole) throws UserRoleAlreadyExistsException, AdminDeletionException {
-        // Check the administrative role for changes
-        UserRole existingRole = userRoleRepository.findById(id)
-                .orElseThrow(() -> new UserRoleNotFoundException("UserRole not found for ID: " + id));
 
-        // Check if the role being updated is the admin role
-        if (existingRole.getRoleName().equals(ROLE_ADMIN) && !updatedRole.getRoleName().equals(ROLE_ADMIN)) {
-            throw new AdminDeletionException("Cannot update administrator role");
-        }
-
-        // Check if the updated role name already exists
-        if (userRoleRepository.existsByRoleName(updatedRole.getRoleName())) {
-            throw new UserRoleAlreadyExistsException("UserRole with name " + updatedRole.getRoleName() + " already exists");
-        }
-
-        // Update fields
-        userRoleRepository.updateUserRole(
-                id,
-                updatedRole.getRoleName(),
-                updatedRole.getDescription());
-    }
-
+    @Loggable(value = ActionType.DELETE)
     @Override
     public void deleteRole(Long id) {
         // Check if the role is ROLE_ADMIN
@@ -96,6 +76,7 @@ public class UserRoleServiceImpl implements UserRoleService {
         userRoleRepository.deleteById(id);
     }
 
+    @Loggable(value = ActionType.CREATE)
     @Override
     public void assignRoleToAll(Long roleId) {
         // Get all users without the specified role
@@ -112,6 +93,7 @@ public class UserRoleServiceImpl implements UserRoleService {
         }
     }
 
+    @Loggable(value = ActionType.CREATE)
     @Override
     public void assignRoleToUser(Long roleId, Long userId) {
         // Get the user by ID
@@ -175,39 +157,6 @@ public class UserRoleServiceImpl implements UserRoleService {
         return userRole.getRoleName();
     }
 
-    // Finds the user role with the name ROLE_ADMIN
-    private UserRole findAdminRole() {
-        UserRole adminRole = findRoleByName(ROLE_ADMIN);
-        if (adminRole == null) {
-            throw new UserRoleNotFoundException("Role not found: " + ROLE_ADMIN);
-        }
-        return adminRole;
-    }
 
-    @Override
-    public void createAdmin(User user) {
-        // Check if the ROLE_ADMIN role exists
-        UserRole adminRole = findAdminRole();
-        // Set user role and registration date
-        user.setUserRole(adminRole);
-        user.setRegDate(LocalDate.now());
-
-        // Check created user details
-        validateCreatedUserDetails(user);
-
-        // Save the user
-        userRepository.save(user);
-    }
-
-    // Method for checking the data of the user
-    private void validateCreatedUserDetails(User user) {
-        if (userRepository.existsByFirstName(user.getFirstName())
-                && userRepository.existsByLastName(user.getLastName())
-                && userRepository.existsByBirthDate(user.getBirthDate())) {
-            throw new UserAlreadyExistsException(
-                    "User with First Name: '" + user.getFirstName() + "', Last Name '" + user.getLastName() +
-                            "', Date of birth '" + user.getBirthDate() + "' already exists");
-        }
-    }
 
 }

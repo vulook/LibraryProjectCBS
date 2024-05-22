@@ -1,11 +1,9 @@
 package edu.cbsystematics.com.libraryprojectcbs.service;
 
-import edu.cbsystematics.com.libraryprojectcbs.aop.Loggable;
-import edu.cbsystematics.com.libraryprojectcbs.dto.UserRegistrationDTO;
-import edu.cbsystematics.com.libraryprojectcbs.models.ActionType;
+import edu.cbsystematics.com.libraryprojectcbs.dto.login.UserRegistrationDTO;
 import edu.cbsystematics.com.libraryprojectcbs.models.User;
 import edu.cbsystematics.com.libraryprojectcbs.models.UserRole;
-import edu.cbsystematics.com.libraryprojectcbs.utils.period.CountUsersFromTimePeriod;
+import edu.cbsystematics.com.libraryprojectcbs.utils.period.CountTimePeriod;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,53 +14,63 @@ import java.util.Optional;
 
 public interface UserService {
 
-    // Saves a new user to the database after initialization
+
+    // Initialize user database if user does not exist
     void createUserDatabaseInit(User user);
 
-    // Creates a new user based on a registration DTO
-    void createUserRegistration(UserRegistrationDTO registrationDTO);
+    // Register a new user
+    User createUserRegistration(UserRegistrationDTO registrationDTO);
 
-    // Creates a new user
-    void createUser(User createdUser);
+    // Create a new user
+    User createUser(User createdUser);
 
-    // Updates a user's information
+    // Update an existing user
     @Transactional
     void updateUser(Long id, User updatedUser);
 
-    // Updates a reader's information
+    // Partially update an existing user
     @Transactional
     void partialUpdateUser(Long id, String firstName, String lastName, LocalDate birthDate, String phone, String email, String password);
 
-    // Deletes a user with the given ID
+    // Delete a user
     void deleteUser(Long id);
 
-    @Loggable(value = ActionType.DELETE)
+    // Delete an admin user
     void deleteAdmin(Long id);
 
-    // Gets a user by their ID
-    Optional<User> getUserById(Long id);
+    // Get a user by ID
+    Optional<User> getUserById(Long userId);
 
-    // Gets a list of all users
+    // Find a user by email
+    Optional<User> findByEmail(String email);
+
+    // Get all users
     List<User> getAllUsers();
 
-    // Searches users by their full name (first or last)
+    // Search users by full name
     List<User> searchUsersByFullName(String query);
 
-    // Counts the total number of users with a specific role ID
+    // Get total users to count by role ID
     int getTotalUsersByRoleId(Long roleId);
 
-    // Gets a list of users with a specific role ID
+    // Get a list of users by role ID
     List<User> getListUsersByRoleId(Long roleId);
 
-    // Gets a list of users without any role ID
+    // Get users without role ID
     List<User> getUsersWithoutRoleId();
 
-    // Finds a user by their email address
-    User findByEmail(String email);
+    // Get user registrations by role
+    List<CountTimePeriod> getUserRegistrationsByRole(UserRole role);
 
-    List<CountUsersFromTimePeriod> getUserRegistrationsByRole(UserRole role);
-
-    // Returns a page of users with pagination and sorting options
+    // Paginate users with sorting
     Page<User> paginationUsers(Integer pageNumber, Integer pageSize, String sortField, String sortDirection);
 
+    // Find a User by their verificationCode
+    User findByVerificationCode(String verificationCode);
+
+    // Generates a verification code for resetting the password
+    void createPasswordResetToken(User user);
+
+    // Updates the password of a user with the specified ID
+    void updatePassword(Long id, String password);
 }

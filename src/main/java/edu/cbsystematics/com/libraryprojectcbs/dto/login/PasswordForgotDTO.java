@@ -1,4 +1,4 @@
-package edu.cbsystematics.com.libraryprojectcbs.dto;
+package edu.cbsystematics.com.libraryprojectcbs.dto.login;
 
 import edu.cbsystematics.com.libraryprojectcbs.utils.validemail.ValidEmail;
 import jakarta.validation.constraints.Email;

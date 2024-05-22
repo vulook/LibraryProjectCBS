@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AuthorRepository extends JpaRepository<Author, Long> {
@@ -28,14 +29,14 @@ public interface AuthorRepository extends JpaRepository<Author, Long> {
     List<Author> searchByAuthorNameOrLastName(@Param("query") String query);
 
 
-    // Search ID by FullName
-    @Query("SELECT a.id FROM Author a WHERE a.firstName = :firstName AND a.lastName = :lastName")
-    Long getAuthorIdByFullName (@Param("firstName") String firstName, @Param("lastName") String lastName);
+    @Query("SELECT w, COUNT(b) AS bookCount FROM Author w LEFT JOIN w.books b WHERE lower(w.firstName) LIKE lower(concat('%', :query, '%')) OR lower(w.lastName) LIKE lower(concat('%', :query, '%')) GROUP BY w")
+    List<Object[]> searchByAuthorNameOrLastNameWithBookCount(@Param("query") String query);
 
-    // Check if a firstName with the given firstName exists. Returns true if a match is found
-    boolean existsByFirstName(String firstName);
 
-    // Check if a lastName with the given lastName exists. Returns true if a match is found
-    boolean existsByLastName(String lastName);
+    @Query("SELECT a FROM Author a WHERE a.firstName = :firstName AND a.lastName = :lastName")
+    Optional<Author> findByFirstNameAndLastName(@Param("firstName") String firstName, @Param("lastName") String lastName);
+
+
+    boolean existsByFirstNameAndLastNameAndIdNot(String firstName, String lastName, Long id);
 
 }

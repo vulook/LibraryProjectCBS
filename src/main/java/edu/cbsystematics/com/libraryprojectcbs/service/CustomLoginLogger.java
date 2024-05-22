@@ -28,7 +28,7 @@ public class CustomLoginLogger {
         // Check if userDetails is not null
         Optional.ofNullable(userDetails)
                 .map(UserDetails::getUsername)
-                .map(userService::findByEmail)
+                .flatMap(userService::findByEmail)
                 .ifPresent(user -> {
                     // Extract user information
                     String fullName = user.getFirstName() + " " + user.getLastName();

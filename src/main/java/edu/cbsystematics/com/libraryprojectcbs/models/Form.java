@@ -1,8 +1,9 @@
 package edu.cbsystematics.com.libraryprojectcbs.models;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDate;
@@ -12,7 +13,8 @@ import static edu.cbsystematics.com.libraryprojectcbs.LibraryProjectCbsApplicati
 
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @DynamicUpdate
 @Table(name = "forms")
@@ -23,7 +25,7 @@ public class Form {
     @Column(name = "id", nullable = false, columnDefinition = "BIGINT")
     private Long id;
 
-    @Column(name = "user_books_taken_count", nullable = false, columnDefinition = "BIGINT")
+    @Column(name = "user_books_taken_count", columnDefinition = "BIGINT")
     private Integer userBooksTakenCount;
 
     @Column(name = "start_date")
@@ -35,40 +37,70 @@ public class Form {
     @Column(name = "book_returned")
     private LocalDate bookReturned;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private User user;
+    @Column(name = "is_returned", nullable = false)
+    private boolean isReturned;
 
-    @ManyToOne
-    @JoinColumn(name = "book_id", referencedColumnName = "id")
-    private Book book;
+    @Column(name = "librarian_id")
+    private Long librarianId;
 
-    public Form(LocalDate startDate, LocalDate bookReturned, User user, Book book) {
+    @OneToOne
+    @JoinColumn(name = "card_id")
+    private Card card;
+
+
+    public Form(Card card, LocalDate startDate, LocalDate bookReturned, Long librarianId) {
+        this.card = card;
         this.startDate = startDate;
+        this.returnDate = calculateReturnDate();
         this.bookReturned = bookReturned;
-        this.user = user;
-        this.book = book;
+        this.isReturned = calculateIsReturned();
+        this.librarianId = librarianId;
     }
 
-    public Form(User user, Book book) {
-        this.startDate = LocalDate.now();
-        this.user = user;
-        this.book = book;
+    public Form(Card card, LocalDate startDate, LocalDate bookReturned) {
+        this.card = card;
+        this.startDate = startDate;
+        this.returnDate = calculateReturnDate();
+        this.bookReturned = bookReturned;
+        this.isReturned = calculateIsReturned();
     }
+
+    public Form(Card card) {
+        this.card = card;
+        this.startDate = LocalDate.now();
+        this.returnDate = calculateReturnDate();
+        this.isReturned = calculateIsReturned();
+    }
+
+    // Calculate the return date based on the start date
+    // Assuming a 30-day reading period.
+    private LocalDate calculateReturnDate() {
+        if (this.startDate != null) {
+            return this.startDate.plusDays(READING_PERIOD);
+        } else {
+            throw new IllegalArgumentException("Enter start date to calculate reading time.");
+        }
+    }
+
+    private boolean calculateIsReturned() {
+        return bookReturned != null; // Book is considered returned if bookReturned date is set
+    }
+
 
     // Calculate the number of books taken by the user based on the list of Form objects.
     public void calculateUserBooksTakenCount(List<Form> userForms) {
         this.userBooksTakenCount = userForms.isEmpty() ? 1 : userForms.size() + 1;
     }
 
-    // Calculate the return date based on the start date
-    // Assuming a 30-day reading period.
-    public LocalDate calculateReturnDate() {
-        if (this.startDate != null) {
-            return this.startDate.plusDays(READING_PERIOD);
-        } else {
-            throw new IllegalArgumentException("Please enter a start date for borrowing the book.");
-        }
+    @Override
+    public String toString() {
+        return "Form{" +
+                "userBooksTakenCount=" + userBooksTakenCount +
+                ", startDate=" + startDate +
+                ", returnDate=" + returnDate +
+                ", bookReturned=" + bookReturned +
+                ", isReturned=" + isReturned +
+                '}';
     }
 
 }

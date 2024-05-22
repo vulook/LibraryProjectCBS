@@ -21,37 +21,26 @@ public class Author {
     @Column(name = "id")
     private long id;
 
-    @NotNull(message = "First Name is required")
-    @Size(min = 2, max = 50, message = "First Name should be between 2 and 50 characters")
-    @Pattern.List({
-            @Pattern(regexp = "^[\\p{Alpha}\\d\\- .]+$", message = "First Name should contain only alphabets, space, dot, and hyphen"),
-            @Pattern(regexp = "^[^\\s].*$", message = "First Name should not start with space"),
-            @Pattern(regexp = "^.*[^\\s]$", message = "First Name should not end with space"),
-            @Pattern(regexp = "^((?! ).)*$", message = "First Name should not contain consecutive spaces"),
-            @Pattern(regexp = "^[^a-z].*$", message = "First Name should not start with a lowercase character")
-    })
     @Column(name = "first_name", nullable = false, columnDefinition = "varchar(50)")
     private String firstName;
 
-    @NotNull(message = "LastName Name is required")
-    @Size(min = 2, max = 50, message = "Last Name should be between 2 and 50 characters")
-    @Pattern.List({
-            @Pattern(regexp = "^[\\p{Alpha}\\d\\- .]+$", message = "Last Name should contain only alphabets and space"),
-            @Pattern(regexp = "^[^\\s].*$", message = "Last Name should not start with space"),
-            @Pattern(regexp = "^.*[^\\s]$", message = "Last Name should not end with space"),
-            @Pattern(regexp = "^((?! ).)*$", message = "Last Name should not contain consecutive spaces"),
-            @Pattern(regexp = "^[^a-z].*$", message = "Last Name should not start with a lowercase character")
-    })
     @Column(name = "last_name", nullable = false, columnDefinition = "varchar(50)")
     private String lastName;
 
     @ManyToMany(mappedBy = "authors", fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE} )
     private Set<Book> books = new HashSet<>();
 
+
     public Author(String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
     }
+
+
+    public Set<Book> getBooks() {
+        return books != null ? books : new HashSet<>();
+    }
+
 
     @Override
     public String toString() {
@@ -62,6 +51,7 @@ public class Author {
                 '}';
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -70,6 +60,7 @@ public class Author {
         if (!getFirstName().equals(author.getFirstName())) return false;
         return getLastName().equals(author.getLastName());
     }
+
 
     @Override
     public int hashCode() {

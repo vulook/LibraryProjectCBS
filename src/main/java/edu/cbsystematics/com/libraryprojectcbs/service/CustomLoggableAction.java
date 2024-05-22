@@ -24,7 +24,7 @@ public class CustomLoggableAction {
 
     public void logLoggableAction(String email, String role, ActionType actionType, Signature methodSignature, Object[] methodArguments, long executionTime) {
         // Find the user by email
-        User user = userService.findByEmail(email);
+        User user = userService.findByEmail(email).orElse(null);
 
         // Extract user information
         String fullName = (user != null) ? user.getFirstName() + " " + user.getLastName() : "ANONYMOUS";

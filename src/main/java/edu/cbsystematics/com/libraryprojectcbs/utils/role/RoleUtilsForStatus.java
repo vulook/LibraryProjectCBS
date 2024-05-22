@@ -1,6 +1,5 @@
 package edu.cbsystematics.com.libraryprojectcbs.utils.role;
 
-import edu.cbsystematics.com.libraryprojectcbs.exception.UserRoleNotFoundException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -15,8 +14,8 @@ public class RoleUtilsForStatus {
             case ROLE_ADMIN -> "admin";
             case ROLE_LIBRARIAN -> "librarian";
             case ROLE_READER -> "reader";
-            default ->
-                    throw new UserRoleNotFoundException("Unknown role: " + role);
+            case ROLE_WORKER -> "worker";
+            default -> null; // Return null for unknown roles
         };
     }
 
