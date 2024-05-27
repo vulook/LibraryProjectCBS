@@ -31,9 +31,9 @@ ___
 - **Thymeleaf:** Використовується для створення веб-форм та інтерфейсів користувача.
 - **Bootstrap:** Використовується для стилізації веб-сторінки.
 ___
-<img src="img/img2.png" alt="alt text" width="1000" height="500">
+<img src="img/img2.png" alt="alt text" width="1000" height="450">
 
 ___
-<img src="img/img3.png" alt="alt text" width="1000" height="500">
+<img src="img/img3.png" alt="alt text" width="1000" height="450">
 
 ___
